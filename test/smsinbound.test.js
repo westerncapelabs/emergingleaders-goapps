@@ -19,14 +19,9 @@ describe("emergingleaders app", function() {
             tester
                 .setup.char_limit(160)
                 .setup.config.app({
-                    name: 'smsapp',
+                    name: 'smsinbound',
                     testing_today: '2015-04-03 06:07:08.999',
                     metric_store: 'emergingleaders_test',  // _env at the end
-                    control: {
-                        username: 'test_user',
-                        api_key: 'test_key',
-                        url: "http://127.0.0.1:8000/subscription/"
-                    }
                 })
                 .setup(function(api) {
                     api.resources.add(new DummyOptoutResource());
@@ -42,30 +37,17 @@ describe("emergingleaders app", function() {
                     });
                 })
                 .setup(function(api) {
-                    // registered refugee 1
                     api.contacts.add({
-                        msisdn: '+064001',
-                        extra: {
-                            language: 'french',
-                            lang: 'fr',
-                            country: 'drc',
-                            status: 'refugee',
-                            registered: 'true'
-                        },
+                        msisdn: '+064991',
                         key: "contact_key",
                         user_account: "contact_user_account"
                     });
                 })
                 .setup(function(api) {
-                    // registered refugee 3 (opted out contact)
+                    // opted out contact
                     api.contacts.add({
-                        msisdn: '+064003',
+                        msisdn: '+064999',
                         extra: {
-                            language: 'french',
-                            lang: 'fr',
-                            country: 'drc',
-                            status: 'refugee',
-                            registered: 'true',
                             optout_last_attempt: '2015-01-01 01:01:01.111'
                         },
                         key: "contact_key",
@@ -79,7 +61,7 @@ describe("emergingleaders app", function() {
             it("should opt them out", function() {
                 // opt-out functionality is also being tested via fixture 01
                 return tester
-                    .setup.user.addr('064001')
+                    .setup.user.addr('064991')
                     .inputs('"stop" in the name of love')
                     // check navigation
                     .check.interaction({
@@ -90,7 +72,7 @@ describe("emergingleaders app", function() {
                     // check extras
                     .check(function(api) {
                         var contact = _.find(api.contacts.store, {
-                                msisdn: '+064001'
+                                msisdn: '+064991'
                             });
                         assert.equal(contact.extra.optout_last_attempt, '2015-04-03 06:07:08.999');
                         assert.equal(contact.extra.optin_last_attempt, undefined);
@@ -117,7 +99,7 @@ describe("emergingleaders app", function() {
             it("should opt them out", function() {
                 // opt-out functionality is also being tested via fixture 01
                 return tester
-                    .setup.user.addr('064001')
+                    .setup.user.addr('064991')
                     .inputs('BLOCK')
                     // check navigation
                     .check.interaction({
@@ -128,7 +110,7 @@ describe("emergingleaders app", function() {
                     // check extras
                     .check(function(api) {
                         var contact = _.find(api.contacts.store, {
-                                msisdn: '+064001'
+                                msisdn: '+064991'
                             });
                         assert.equal(contact.extra.optout_last_attempt, '2015-04-03 06:07:08.999');
                         assert.equal(contact.extra.optin_last_attempt, undefined);
@@ -155,7 +137,7 @@ describe("emergingleaders app", function() {
             it("should opt them in", function() {
                 // opt-in functionality is also being tested via fixtures
                 return tester
-                    .setup.user.addr('064003')
+                    .setup.user.addr('064999')
                     .inputs('start')
                     // check navigation
                     .check.interaction({
@@ -166,7 +148,7 @@ describe("emergingleaders app", function() {
                     // check extras
                     .check(function(api) {
                         var contact = _.find(api.contacts.store, {
-                                msisdn: '+064003'
+                                msisdn: '+064999'
                             });
                         assert.equal(contact.extra.optout_last_attempt, '2015-01-01 01:01:01.111');
                         assert.equal(contact.extra.optin_last_attempt, '2015-04-03 06:07:08.999');
@@ -192,7 +174,7 @@ describe("emergingleaders app", function() {
         describe("when the user sends a different message", function() {
             it("should tell them how to opt out", function() {
                 return tester
-                    .setup.user.addr('064001')
+                    .setup.user.addr('064991')
                     .inputs('lhr')
                     // check navigation
                     .check.interaction({
@@ -203,7 +185,7 @@ describe("emergingleaders app", function() {
                     // check extras
                     .check(function(api) {
                         var contact = _.find(api.contacts.store, {
-                                msisdn: '+064001'
+                                msisdn: '+064991'
                             });
                         assert.equal(contact.extra.optout_last_attempt, undefined);
                         assert.equal(contact.extra.optin_last_attempt, undefined);
