@@ -1,0 +1,41 @@
+{
+  "name": "emergingleaders-goapps",
+  "version": "0.0.1",
+  "description": "Emerging Leaders USSD and SMS apps",
+  "main": "src/",
+  "scripts": {
+    "test": "grunt test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/westerncapelabs/emergingleaders-goapps"
+  },
+  "keywords": [
+    "vumi",
+    "sandbox",
+    "emergingleaders"
+  ],
+  "author": "Western Cape Labs",
+  "license": "BSD",
+  "bugs": {
+    "url": "https://github.com/westerncapelabs/emergingleaders-goapps/issues"
+  },
+  "homepage": "https://github.com/westerncapelabs/emergingleaders-goapps",
+  "dependencies": {
+    "vumigo_v02": "~0.2",
+    "q": "~0.9",
+    "lodash": "~2.4.1",
+    "moment": "~2.6.0",
+    "go-jsbox-metrics-helper": "~0.1.1"
+  },
+  "devDependencies": {
+    "mocha": "~1.18",
+    "jshint": "~2.4.4",
+    "grunt-contrib-concat": "~0.3.0",
+    "grunt-contrib-watch": "~0.6.0",
+    "grunt": "~0.4.4",
+    "grunt-mocha-test": "~0.10.0",
+    "grunt-contrib-jshint": "~0.9.2",
+    "grunt-cli": "~0.1.13"
+  }
+}
