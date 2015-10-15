@@ -11,7 +11,6 @@ go.app = function() {
     var GoApp = App.extend(function(self) {
         App.call(self, 'state_start');
         var $ = self.$;
-        var interrupt = true;
 
         self.init = function() {
 
@@ -33,46 +32,9 @@ go.app = function() {
         };
 
 
-    // TIMEOUT STATES
-
-        // override normal state adding
-        self.add = function(name, creator) {
-            self.states.add(name, function(name, opts) {
-                if (!interrupt || !go.utils.timed_out(self.im))
-                    return creator(name, opts);
-
-                interrupt = false;
-                opts = opts || {};
-                opts.name = name;
-                return self.states.create('state_timed_out', opts);
-            });
-        };
-
-        self.states.add('state_timed_out', function(name, creator_opts) {
-            return new ChoiceState(name, {
-                question: $("Welcome back! Please select:"),
-                choices: [
-                    new Choice('continue', $("Return to where I left off")),
-                    new Choice('reset', $("Start over")),
-                ],
-
-                next: function(choice) {
-                    if (choice.value === 'continue') {
-                        return {
-                            name: creator_opts.name,
-                            creator_opts: creator_opts
-                        };
-                    } else if (choice.value === 'reset') {
-                        return 'state_start';
-                    }
-                }
-            });
-        });
-
-
     // ROUTING STATES
 
-        self.add('state_start', function(name) {
+        self.states.add('state_start', function(name) {
             return go.utils
                 .set_language(self.im, self.contact)
                 .then(function() {
@@ -83,7 +45,7 @@ go.app = function() {
 
     // CONTENT STATES
 
-        self.add('state_language', function(name) {
+        self.states.add('state_language', function(name) {
             return new ChoiceState(name, {
                 question: $("Choose your preferred language:"),
                 choices: [
@@ -102,7 +64,7 @@ go.app = function() {
             });
         });
 
-        self.add('state_name', function(name) {
+        self.states.add('state_name', function(name) {
             return new FreeText(name, {
                 question: "What is your full name?",
                 next: function(choice) {
@@ -111,7 +73,7 @@ go.app = function() {
             });
         });
 
-        self.add('state_end', function(name) {
+        self.states.add('state_end', function(name) {
             return new EndState(name, {
                 text: $("Thank you for registering your training session!"),
                 next: 'state_start'
