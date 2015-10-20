@@ -178,6 +178,32 @@ go.app = function() {
 
     // CONTENT STATES
 
+        self.states.add('state_returning_user', function(name) {
+            return new ChoiceState(name, {
+                question: $("Welcome back {{name}}.").context({
+                    name: self.contact.extra.full_name}),
+                choices: [
+                    new Choice('training', $("Register attendance at training session")),
+                    new Choice('reset', $("I am not {{name}}").context({
+                        name: self.contact.extra.full_name})),
+                    new Choice('help', ("Help!"))
+                ],
+                next: function(choice) {
+                    if (choice.value == 'training') {
+                        return 'state_training_code';
+                    } else if (choice.value === 'reset') {
+                        return go.utils
+                            .reset_contact(self.im, self.contact)
+                            .then(function() {
+                                return 'state_language';
+                            });
+                    } else if (choice.value === 'help') {
+                        return 'state_help';
+                    }
+                }
+            });
+        });
+
         self.states.add('state_language', function(name) {
             return new PaginatedChoiceState(name, {
                 question: $('Choose your preferred language:'),
@@ -223,29 +249,10 @@ go.app = function() {
             });
         });
 
-        self.states.add('state_returning_user', function(name) {
-            return new ChoiceState(name, {
-                question: $("Welcome back {{name}}.").context({
-                    name: self.contact.extra.full_name}),
-                choices: [
-                    new Choice('training', $("Register attendance at training session")),
-                    new Choice('reset', $("I am not {{name}}").context({
-                        name: self.contact.extra.full_name})),
-                    new Choice('help', ("Help!"))
-                ],
-                next: function(choice) {
-                    if (choice.value == 'training') {
-                        return 'state_training_code';
-                    } else if (choice.value === 'reset') {
-                        return go.utils
-                            .reset_contact(self.im, self.contact)
-                            .then(function() {
-                                return 'state_language';
-                            });
-                    } else if (choice.value === 'help') {
-                        return 'state_help';
-                    }
-                }
+        self.states.add('state_name', function(name) {
+            return new FreeText(name, {
+                question: $("Please enter your full name"),
+                next: 'state_id_type'
             });
         });
 

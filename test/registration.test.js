@@ -246,13 +246,28 @@ describe("emergingleaders app", function() {
             });
 
             describe("upon training code entry", function() {
-                it("should go to state_end", function() {
+                it("should go to state_end if it is a new user", function() {
                     return tester
                         .setup.user.addr('082111')
                         .inputs(
                             {session_event: 'new'}  // dial in
                             , '3'  // state_language - afrikaans
-                            , '1'  // state_training_code
+                            , '111'  // state_training_code
+                        )
+                        .check.interaction({
+                            state: 'state_name',
+                            reply: "Please enter your full name"
+                        })
+                        .run();
+                });
+
+                it("should go to state_end if it is a fully registered user", function() {
+                    return tester
+                        .setup.user.addr('082222')
+                        .inputs(
+                            {session_event: 'new'}  // dial in
+                            , '1'  // state_returning_user - register attendance
+                            , '222'  // state_training_code
                         )
                         .check.interaction({
                             state: 'state_end',
