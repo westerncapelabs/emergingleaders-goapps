@@ -3,6 +3,7 @@ go.app = function() {
     var MetricsHelper = require('go-jsbox-metrics-helper');
     var App = vumigo.App;
     var Choice = vumigo.states.Choice;
+    var ChoiceState = vumigo.states.ChoiceState;
     var PaginatedChoiceState = vumigo.states.PaginatedChoiceState;
     var FreeText = vumigo.states.FreeText;
     var EndState = vumigo.states.EndState;
@@ -35,16 +36,17 @@ go.app = function() {
     // ROUTING STATES
 
         self.states.add('state_start', function(name) {
-            // Check if contact language is available
-            // - if it is: set it, go to state_training_code
-            // - if it isn't: go to state_language
             if (self.contact.extra.lang === undefined) {
                 return self.states.create('state_language');
             } else {
                 return go.utils
                     .set_language(self.im, self.contact)
                     .then(function() {
-                        return self.states.create('state_training_code');
+                        if (self.contact.extra.details_completed === "v1") {
+                            return self.states.create('state_returning_user');
+                        } else {
+                            return self.states.create('state_training_code');
+                        }
                     });
             }
         });
@@ -81,10 +83,52 @@ go.app = function() {
 
         self.states.add('state_training_code', function(name) {
             return new FreeText(name, {
-                question: "What is your training session code?",
+                question: $("What is your training session code?"),
                 next: function(choice) {
-                    return 'state_end';
+                    // TODO: validate entered clinic code
+                    return go.utils
+                        .register_attendance(self.im, self.contact, choice.value)
+                        .then(function() {
+                            if (self.contact.extra.details_completed === "v1") {
+                                return 'state_end';
+                            } else {
+                                return 'state_name';
+                            }
+                        });
                 }
+            });
+        });
+
+        self.states.add('state_returning_user', function(name) {
+            return new ChoiceState(name, {
+                question: $("Welcome back {{name}}.").context({
+                    name: self.contact.extra.full_name}),
+                choices: [
+                    new Choice('training', $("Register attendance at training session")),
+                    new Choice('reset', $("I am not {{name}}").context({
+                        name: self.contact.extra.full_name})),
+                    new Choice('help', ("Help!"))
+                ],
+                next: function(choice) {
+                    if (choice.value == 'training') {
+                        return 'state_training_code';
+                    } else if (choice.value === 'reset') {
+                        return go.utils
+                            .reset_contact(self.im, self.contact)
+                            .then(function() {
+                                return 'state_language';
+                            });
+                    } else if (choice.value === 'help') {
+                        return 'state_help';
+                    }
+                }
+            });
+        });
+
+        self.states.add('state_help', function(name) {
+            return new EndState(name, {
+                text: $("Sorry, it's a lost cause."),
+                next: 'state_start'
             });
         });
 

@@ -47,13 +47,27 @@ describe("emergingleaders app", function() {
                     });
                 })
                 .setup(function(api) {
-                    // returning user
+                    // returning user all details completed
                     api.contacts.add({
                         msisdn: '+082222',
                         extra: {
-                            lang: "af"
+                            lang: "af",
+                            full_name: "Pete Pompey",
+                            details_completed: "v1"
                         },
                         key: "contact_key_082222",
+                        user_account: "contact_user_account"
+                    });
+                })
+                .setup(function(api) {
+                    // returning user only some details completed
+                    api.contacts.add({
+                        msisdn: '+082333',
+                        extra: {
+                            lang: "af",
+                            full_name: "susan"
+                        },
+                        key: "contact_key_082333",
                         user_account: "contact_user_account"
                     });
                 })
@@ -110,10 +124,30 @@ describe("emergingleaders app", function() {
                         .run();
                 });
 
-                it("should set their language, ask for training code if they are a " +
-                   "returning user", function() {
+                it("should set their language, present options if they are a returning " +
+                   "fully registered user", function() {
                     return tester
                         .setup.user.addr('082222')
+                        .inputs(
+                            {session_event: 'new'}  // dial in
+                        )
+                        .check.user.properties({lang: 'af'})
+                        .check.interaction({
+                            state: 'state_returning_user',
+                            reply: [
+                                "Welcome back Pete Pompey.",
+                                "1. Register attendance at training session",
+                                "2. I am not Pete Pompey",
+                                "3. Help!"
+                            ].join('\n')
+                        })
+                        .run();
+                });
+
+                it("should set their language, ask for training code if they are a " +
+                   "returning user with incomplete information", function() {
+                    return tester
+                        .setup.user.addr('082333')
                         .inputs(
                             {session_event: 'new'}  // dial in
                         )
@@ -155,6 +189,57 @@ describe("emergingleaders app", function() {
                         .check.interaction({
                             state: 'state_training_code',
                             reply: "What is your training session code?"
+                        })
+                        .run();
+                });
+            });
+
+            describe("upon retuning user option selection", function() {
+                it("should ask for their training code if they want to register " +
+                   "attendance", function() {
+                    return tester
+                        .setup.user.addr('082222')
+                        .inputs(
+                            {session_event: 'new'}  // dial in
+                            , '1'  // state_returning_user - register attendance
+                        )
+                        .check.interaction({
+                            state: 'state_training_code'
+                        })
+                        .run();
+                });
+
+                it("should reset extras, language, ask for language if they indicate " +
+                   "that they are not the contact", function() {
+                    return tester
+                        .setup.user.addr('082222')
+                        .inputs(
+                            {session_event: 'new'}  // dial in
+                            , '2'  // state_returning_user - not the contact
+                        )
+                        .check.user.properties({lang: 'en'})
+                        .check(function(api) {
+                            var contact = _.find(api.contacts.store, {
+                              msisdn: '+082222'
+                            });
+                            assert.equal(Object.keys(contact.extra).length, 0);
+                        })
+                        .check.interaction({
+                            state: 'state_language'
+                        })
+                        .run();
+                });
+
+                it("should tell them there's no hope if they ask for help", function() {
+                    return tester
+                        .setup.user.addr('082222')
+                        .inputs(
+                            {session_event: 'new'}  // dial in
+                            , '3'  // state_returning_user - help
+                        )
+                        .check.interaction({
+                            state: 'state_help',
+                            reply: "Sorry, it's a lost cause."
                         })
                         .run();
                 });

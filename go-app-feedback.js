@@ -30,6 +30,14 @@ go.utils = {
         }
     },
 
+    reset_contact: function(im, contact) {
+        contact.extra = {};
+        return Q.all([
+            im.contacts.save(contact),
+            im.user.set_lang('en'),
+        ]);
+    },
+
     timed_out: function(im) {
         var no_redirects = [
             'state_start',
