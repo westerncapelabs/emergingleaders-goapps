@@ -250,7 +250,7 @@ describe("emergingleaders app", function() {
             });
 
             describe("upon training code entry", function() {
-                it("should go to state_end if it is a new user", function() {
+                it("should go to state_name if it is a new user", function() {
                     return tester
                         .setup.user.addr('082111')
                         .inputs(
@@ -278,6 +278,92 @@ describe("emergingleaders app", function() {
                             reply: "Thank you for registering your training session!"
                         })
                         .check.reply.ends_session()
+                        .run();
+                });
+            });
+
+            describe("upon name entry", function() {
+                it("should go to state_id_type", function() {
+                    return tester
+                        .setup.user.addr('082111')
+                        .inputs(
+                            {session_event: 'new'}  // dial in
+                            , '3'  // state_language - afrikaans
+                            , '111'  // state_training_code
+                            , 'Jan Mopiso'  // state_name
+                        )
+                        .check.interaction({
+                            state: 'state_id_type',
+                            reply: [
+                                "What kind of identification do you have?",
+                                "1. SA ID",
+                                "2. Passport",
+                                "3. None"
+                            ].join('\n')
+                        })
+                        .run();
+                });
+            });
+
+            describe("upon id type entry", function() {
+                it("should go to state_sa_id if SA ID chosen", function() {
+                    return tester
+                        .setup.user.addr('082111')
+                        .inputs(
+                            {session_event: 'new'}  // dial in
+                            , '3'  // state_language - afrikaans
+                            , '111'  // state_training_code
+                            , 'Jan Mopiso'  // state_name
+                            , '1'  // state_id_type - sa_id
+                        )
+                        .check.interaction({
+                            state: 'state_sa_id',
+                            reply: 'Please enter your SA ID number:'
+                        })
+                        .run();
+                });
+
+                it("should go to state_passport_origin if passport chosen", function() {
+                    return tester
+                        .setup.user.addr('082111')
+                        .inputs(
+                            {session_event: 'new'}  // dial in
+                            , '3'  // state_language - afrikaans
+                            , '111'  // state_training_code
+                            , 'Jan Mopiso'  // state_name
+                            , '2'  // state_id_type - passport
+                        )
+                        .check.interaction({
+                            state: 'state_passport_origin',
+                            reply: [
+                                'What is the country of origin of the passport?',
+                                '1. Zimbabwe',
+                                '2. Mozambique',
+                                '3. Malawi',
+                                '4. Nigeria',
+                                '5. DRC',
+                                '6. Somalia',
+                                '7. Other'
+                            ].join('\n')
+                        })
+                        .run();
+                });
+
+                it("should go to state_birth_year if None chosen", function() {
+                    return tester
+                        .setup.user.addr('082111')
+                        .inputs(
+                            {session_event: 'new'}  // dial in
+                            , '3'  // state_language - afrikaans
+                            , '111'  // state_training_code
+                            , 'Jan Mopiso'  // state_name
+                            , '3'  // state_id_type - none
+                        )
+                        .check.interaction({
+                            state: 'state_birth_year',
+                            reply: 'Please enter the year that the pregnant mother was born' +
+                                   '(for example: 1981)'
+                        })
                         .run();
                 });
             });

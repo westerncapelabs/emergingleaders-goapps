@@ -113,7 +113,7 @@ go.app = function() {
                 next: function(choice) {
                     // TODO: validate entered clinic code
                     return go.utils
-                        .register_attendance(self.im, self.contact, choice.value)
+                        .register_attendance(self.im, self.contact, choice)
                         .then(function() {
                             if (self.contact.extra.details_completed === "v1") {
                                 return 'state_end';
@@ -129,7 +129,7 @@ go.app = function() {
             return new FreeText(name, {
                 question: $("Please enter your full name"),
                 next: function(content) {
-                    self.contact.extra.full_name = input;
+                    self.contact.extra.full_name = content;
                     return self.im.contacts
                         .save(self.contact)
                         .then(function() {
@@ -163,7 +163,7 @@ go.app = function() {
             });
         });
 
-        self.states.add('states_sa_id', function(name) {
+        self.states.add('state_sa_id', function(name) {
             var error = $('Sorry, your ID number did not validate. ' +
                           'Please re-enter your SA ID number:');
             var question = $('Please enter your SA ID number:');
@@ -182,6 +182,55 @@ go.app = function() {
                             return {
                                 name: 'state_end'
                             };
+                        });
+                }
+            });
+        });
+
+        self.states.add('state_passport_origin', function(name) {
+            return new ChoiceState(name, {
+                question: $('What is the country of origin of the passport?'),
+                choices: [
+                    new Choice('zw', $('Zimbabwe')),
+                    new Choice('mz', $('Mozambique')),
+                    new Choice('mw', $('Malawi')),
+                    new Choice('ng', $('Nigeria')),
+                    new Choice('cd', $('DRC')),
+                    new Choice('so', $('Somalia')),
+                    new Choice('other', $('Other'))
+                ],
+                next: function(choice) {
+                    self.contact.extra.passport_origin = choice.value;
+                    return self.im.contacts
+                        .save(self.contact)
+                        .then(function() {
+                            return 'states_passport_no';
+                        });
+                }
+            });
+        });
+
+        self.states.add('state_birth_year', function(name, opts) {
+            var error = $('There was an error in your entry. Please carefully enter your ' +
+                          'year of birth again (for example: 2001)');
+            var question = $('Please enter the year that the pregnant mother was born' +
+                             '(for example: 1981)');
+
+            return new FreeText(name, {
+                question: question,
+                check: function(content) {
+                    if (!go.utils.check_number_in_range(content, 1900,
+                        go.utils.get_today(self.im.config).getFullYear() - 6)) {
+                        // assumes youngest possible participant age is 6 years old
+                        return error;
+                    }
+                },
+                next: function(content) {
+                    self.contact.extra.birth_year = content;
+                    return self.im.contacts
+                        .save(self.contact)
+                        .then(function() {
+                            return 'states_birth_month';
                         });
                 }
             });

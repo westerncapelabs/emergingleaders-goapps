@@ -80,6 +80,22 @@ go.utils = {
         return im.contacts.save(contact);
     },
 
+    check_valid_number: function(input){
+        // an attempt to solve the insanity of JavaScript numbers
+        var numbers_only = new RegExp('^\\d+$');
+        if (input !== '' && numbers_only.test(input) && !Number.isNaN(Number(input))){
+            return true;
+        } else {
+            return false;
+        }
+    },
+
+    check_number_in_range: function(input, start, end){
+        return go.utils.check_valid_number(input)
+                && (parseInt(input, 10) >= start)
+                && (parseInt(input, 10) <= end);
+    },
+
     registration_api_call: function (method, params, payload, endpoint, im) {
         var http = new JsonApi(im, {
             headers: {
