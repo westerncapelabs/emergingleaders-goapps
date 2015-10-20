@@ -128,7 +128,62 @@ go.app = function() {
         self.states.add('state_name', function(name) {
             return new FreeText(name, {
                 question: $("Please enter your full name"),
-                next: 'state_id_type'
+                next: function(content) {
+                    self.contact.extra.full_name = input;
+                    return self.im.contacts
+                        .save(self.contact)
+                        .then(function() {
+                            return 'state_id_type';
+                        });
+                }
+            });
+        });
+
+        self.states.add('state_id_type', function(name) {
+            return new ChoiceState(name, {
+                question: $("What kind of identification do you have?"),
+                choices: [
+                    new Choice('sa_id', $('SA ID')),
+                    new Choice('passport', $('Passport')),
+                    new Choice('none', $('None'))
+                ],
+                next: function(choice) {
+                    self.contact.extra.id_type = choice.value;
+
+                    return self.im.contacts
+                        .save(self.contact)
+                        .then(function() {
+                            return {
+                                sa_id: 'state_sa_id',
+                                passport: 'state_passport_origin',
+                                none: 'state_birth_year'
+                            } [choice.value];
+                        });
+                }
+            });
+        });
+
+        self.states.add('states_sa_id', function(name) {
+            var error = $('Sorry, your ID number did not validate. ' +
+                          'Please re-enter your SA ID number:');
+            var question = $('Please enter your SA ID number:');
+
+            return new FreeText(name, {
+                question: question,
+                check: function(content) {
+                    if (!go.utils.validate_id_sa(content)) {
+                        return error;
+                    }
+                },
+                next: function(content) {
+                    return self.im.contacts
+                        .save_id_dob_extras(self.im, self.contact, content)
+                        .then(function() {
+                            return {
+                                name: 'state_end'
+                            };
+                        });
+                }
             });
         });
 

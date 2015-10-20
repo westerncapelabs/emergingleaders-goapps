@@ -53,6 +53,10 @@ describe("emergingleaders app", function() {
                         extra: {
                             lang: "af",
                             full_name: "Pete Pompey",
+                            id_type: 'sa_id',
+                            sa_id: '5101025009086',
+                            dob: '1951-01-02',
+                            gender: 'male',
                             details_completed: "v1"
                         },
                         key: "contact_key_082222",
