@@ -46,6 +46,17 @@ describe("emergingleaders app", function() {
                         user_account: "contact_user_account"
                     });
                 })
+                .setup(function(api) {
+                    // returning user
+                    api.contacts.add({
+                        msisdn: '+082222',
+                        extra: {
+                            lang: "af"
+                        },
+                        key: "contact_key_082222",
+                        user_account: "contact_user_account"
+                    });
+                })
             ;
         });
 
@@ -55,7 +66,8 @@ describe("emergingleaders app", function() {
         describe("Registration testing", function() {
 
             describe("starting session", function() {
-                it("should ask for their language", function() {
+                it("should ask for their language if they are a new user",
+                function() {
                     return tester
                         .setup.user.addr('082111')
                         .inputs(
@@ -70,6 +82,21 @@ describe("emergingleaders app", function() {
                                 "3. Xhosa",
                                 "4. Afrikaans"
                             ].join('\n')
+                        })
+                        .run();
+                });
+
+                it("should set their language, ask for training code if they are a " +
+                   "returning user", function() {
+                    return tester
+                        .setup.user.addr('082222')
+                        .inputs(
+                            {session_event: 'new'}  // dial in
+                        )
+                        .check.user.properties({lang: 'af'})
+                        .check.interaction({
+                            state: 'state_training_code',
+                            reply: "What is your training session code?"
                         })
                         .run();
                 });
@@ -93,21 +120,7 @@ describe("emergingleaders app", function() {
             });
 
             describe("upon language selection", function() {
-                it("should ask for their name", function() {
-                    return tester
-                        .setup.user.addr('082111')
-                        .inputs(
-                            {session_event: 'new'}  // dial in
-                            , '1'  // state_language - english
-                        )
-                        .check.interaction({
-                            state: 'state_name',
-                            reply: "What is your full name?"
-                        })
-                        .run();
-                });
-
-                it("should set their language", function() {
+                it("should set their language, ask for their training code", function() {
                     return tester
                         .setup.user.addr('082111')
                         .inputs(
@@ -115,24 +128,22 @@ describe("emergingleaders app", function() {
                             , '4'  // state_language - afrikaans
                         )
                         .check.user.properties({lang: 'af'})
-                        .check(function(api) {
-                            var contact = _.find(api.contacts.store, {
-                                msisdn: '+082111'
-                            });
-                            assert.equal(contact.extra.lang, 'af');
+                        .check.interaction({
+                            state: 'state_training_code',
+                            reply: "What is your training session code?"
                         })
                         .run();
                 });
             });
 
-            describe("upon language selection", function() {
+            describe("upon training code entry", function() {
                 it("should go to state_end", function() {
                     return tester
                         .setup.user.addr('082111')
                         .inputs(
                             {session_event: 'new'}  // dial in
-                            , '1'  // state_language - english
-                            , 'John'  // state_name
+                            , '4'  // state_language - afrikaans
+                            , '1'  // state_training_code
                         )
                         .check.interaction({
                             state: 'state_end',

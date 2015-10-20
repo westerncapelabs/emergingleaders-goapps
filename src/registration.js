@@ -35,11 +35,18 @@ go.app = function() {
     // ROUTING STATES
 
         self.states.add('state_start', function(name) {
-            return go.utils
-                .set_language(self.im, self.contact)
-                .then(function() {
-                    return self.states.create('state_language');
-                });
+            // Check if contact language is available
+            // - if it is: set it, go to state_training_code
+            // - if it isn't: go to state_language
+            if (self.contact.extra.lang === undefined) {
+                return self.states.create('state_language');
+            } else {
+                return go.utils
+                    .set_language(self.im, self.contact)
+                    .then(function() {
+                        return self.states.create('state_training_code');
+                    });
+            }
         });
 
 
@@ -56,17 +63,17 @@ go.app = function() {
                 ],
                 next: function(choice) {
                     return go.utils
-                        .save_language(self.im, self.contact, choice.value)
+                        .save_set_language(self.im, self.contact, choice.value)
                         .then(function() {
-                            return 'state_name';
+                            return 'state_training_code';
                         });
                 }
             });
         });
 
-        self.states.add('state_name', function(name) {
+        self.states.add('state_training_code', function(name) {
             return new FreeText(name, {
-                question: "What is your full name?",
+                question: "What is your training session code?",
                 next: function(choice) {
                     return 'state_end';
                 }

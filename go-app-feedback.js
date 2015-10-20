@@ -14,7 +14,7 @@ var JsonApi = vumigo.http.api.JsonApi;
 // Shared utils lib
 go.utils = {
 
-    save_language: function(im, contact, lang) {
+    save_set_language: function(im, contact, lang) {
         contact.extra.lang = lang;
         return Q.all([
             im.user.set_lang(lang),
@@ -175,7 +175,7 @@ go.app = function() {
                 ],
                 next: function(choice) {
                     return go.utils
-                        .save_language(self.im, self.contact, choice.value)
+                        .save_set_language(self.im, self.contact, choice.value)
                         .then(function() {
                             return 'state_name';
                         });

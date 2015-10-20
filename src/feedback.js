@@ -56,7 +56,7 @@ go.app = function() {
                 ],
                 next: function(choice) {
                     return go.utils
-                        .save_language(self.im, self.contact, choice.value)
+                        .save_set_language(self.im, self.contact, choice.value)
                         .then(function() {
                             return 'state_name';
                         });
