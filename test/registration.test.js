@@ -66,8 +66,7 @@ describe("emergingleaders app", function() {
         describe("Registration testing", function() {
 
             describe("starting session", function() {
-                it("should ask for their language if they are a new user",
-                function() {
+                it("should ask for their language if they are a new user", function() {
                     return tester
                         .setup.user.addr('082111')
                         .inputs(
@@ -77,10 +76,35 @@ describe("emergingleaders app", function() {
                             state: 'state_language',
                             reply: [
                                 "Choose your preferred language:",
-                                "1. English",
-                                "2. Zulu",
-                                "3. Xhosa",
-                                "4. Afrikaans"
+                                "1. isiZulu",
+                                "2. isiXhosa",
+                                "3. Afrikaans",
+                                "4. English",
+                                "5. Sesotho sa Leboa",
+                                "6. Setswana",
+                                "7. Sesotho",
+                                "8. Xitsonga",
+                                "9. siSwati",
+                                "10. More"
+                            ].join('\n')
+                        })
+                        .run();
+                });
+
+                it("should show more language options on next page", function() {
+                    return tester
+                        .setup.user.addr('082111')
+                        .inputs(
+                            {session_event: 'new'}  // dial in
+                            , '10'  // more
+                        )
+                        .check.interaction({
+                            state: 'state_language',
+                            reply: [
+                                "Choose your preferred language:",
+                                "1. Tshivenda",
+                                "2. isiNdebele",
+                                "3. Back"
                             ].join('\n')
                         })
                         .run();
@@ -125,7 +149,7 @@ describe("emergingleaders app", function() {
                         .setup.user.addr('082111')
                         .inputs(
                             {session_event: 'new'}  // dial in
-                            , '4'  // state_language - afrikaans
+                            , '3'  // state_language - afrikaans
                         )
                         .check.user.properties({lang: 'af'})
                         .check.interaction({
@@ -142,7 +166,7 @@ describe("emergingleaders app", function() {
                         .setup.user.addr('082111')
                         .inputs(
                             {session_event: 'new'}  // dial in
-                            , '4'  // state_language - afrikaans
+                            , '3'  // state_language - afrikaans
                             , '1'  // state_training_code
                         )
                         .check.interaction({
