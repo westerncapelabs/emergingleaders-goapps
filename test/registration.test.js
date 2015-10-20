@@ -368,6 +368,34 @@ describe("emergingleaders app", function() {
                 });
             });
 
+            describe("upon id number entry", function() {
+                it("should go to state_end, save extras if id validates", function() {
+                    return tester
+                        .setup.user.addr('082111')
+                        .inputs(
+                            {session_event: 'new'}  // dial in
+                            , '3'  // state_language - afrikaans
+                            , '111'  // state_training_code
+                            , 'Jan Mopiso'  // state_name
+                            , '1'  // state_id_type - sa_id
+                            , '5002285000007'  // state_sa_id
+                        )
+                        .check.interaction({
+                            state: 'state_end',
+                            reply: "Thank you for registering your training session!"
+                        })
+                        .check(function(api) {
+                            var contact = _.find(api.contacts.store, {
+                              msisdn: '+082111'
+                            });
+                            assert.equal(contact.extra.sa_id, '5002285000007');
+                            assert.equal(contact.extra.dob, '1950-02-28');
+                            assert.equal(contact.extra.gender, 'male');
+                        })
+                        .run();
+                });
+            });
+
         });
 
     });

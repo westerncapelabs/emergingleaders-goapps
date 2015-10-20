@@ -176,12 +176,10 @@ go.app = function() {
                     }
                 },
                 next: function(content) {
-                    return self.im.contacts
-                        .save_id_dob_extras(self.im, self.contact, content)
+                    return go.utils
+                        .save_id_dob_gender_extras(self.im, self.contact, content)
                         .then(function() {
-                            return {
-                                name: 'state_end'
-                            };
+                            return 'state_end';
                         });
                 }
             });

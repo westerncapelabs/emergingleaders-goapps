@@ -11,6 +11,13 @@ var moment = require('moment');
 var vumigo = require('vumigo_v02');
 var JsonApi = vumigo.http.api.JsonApi;
 
+
+// override moment default century switch at '68 with '49
+// ie. 48 becomes 2048, 50 becomes 1950
+moment.parseTwoDigitYear = function (input) {
+    return +input + (+input > 49 ? 1900 : 2000);
+};
+
 // Shared utils lib
 go.utils = {
 
@@ -82,8 +89,8 @@ go.utils = {
 
     save_id_dob_gender_extras: function(im, contact, id) {
         contact.extra.sa_id = id;
-        contact.extra.dob = extract_id_dob(id);
-        contact.extra.gender = extract_id_gender(id);
+        contact.extra.dob = go.utils.extract_id_dob(id);
+        contact.extra.gender = go.utils.extract_id_gender(id);
         return im.contacts.save(contact);
     },
 
@@ -358,12 +365,10 @@ go.app = function() {
                     }
                 },
                 next: function(content) {
-                    return self.im.contacts
-                        .save_id_dob_extras(self.im, self.contact, content)
+                    return go.utils
+                        .save_id_dob_gender_extras(self.im, self.contact, content)
                         .then(function() {
-                            return {
-                                name: 'state_end'
-                            };
+                            return 'state_end';
                         });
                 }
             });
