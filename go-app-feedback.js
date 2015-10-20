@@ -38,14 +38,11 @@ go.utils = {
         ]);
     },
 
-    timed_out: function(im) {
-        var no_redirects = [
-            'state_start',
-            'state_end'
-        ];
-        return im.msg.session_event === 'new'
-            && im.user.state.name
-            && no_redirects.indexOf(im.user.state.name) === -1;
+    register_attendance: function(im, contact, training_code) {
+        // TODO: api post attendance
+        contact.extra.last_training_code = training_code;
+        im.contacts.save(contact);
+        return Q();
     },
 
     registration_api_call: function (method, params, payload, endpoint, im) {

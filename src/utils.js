@@ -38,16 +38,6 @@ go.utils = {
         return Q();
     },
 
-    timed_out: function(im) {
-        var no_redirects = [
-            'state_start',
-            'state_end'
-        ];
-        return im.msg.session_event === 'new'
-            && im.user.state.name
-            && no_redirects.indexOf(im.user.state.name) === -1;
-    },
-
     registration_api_call: function (method, params, payload, endpoint, im) {
         var http = new JsonApi(im, {
             headers: {

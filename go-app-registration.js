@@ -38,14 +38,11 @@ go.utils = {
         ]);
     },
 
-    timed_out: function(im) {
-        var no_redirects = [
-            'state_start',
-            'state_end'
-        ];
-        return im.msg.session_event === 'new'
-            && im.user.state.name
-            && no_redirects.indexOf(im.user.state.name) === -1;
+    register_attendance: function(im, contact, training_code) {
+        // TODO: api post attendance
+        contact.extra.last_training_code = training_code;
+        im.contacts.save(contact);
+        return Q();
     },
 
     registration_api_call: function (method, params, payload, endpoint, im) {
@@ -212,7 +209,16 @@ go.app = function() {
             return new FreeText(name, {
                 question: $("What is your training session code?"),
                 next: function(choice) {
-                    return 'state_end';
+                    // TODO: validate entered clinic code
+                    return go.utils
+                        .register_attendance(self.im, self.contact, choice.value)
+                        .then(function() {
+                            if (self.contact.extra.details_completed === "v1") {
+                                return 'state_end';
+                            } else {
+                                return 'state_name';
+                            }
+                        });
                 }
             });
         });
