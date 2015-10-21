@@ -111,7 +111,7 @@ go.app = function() {
             return new FreeText(name, {
                 question: $("What is your training session code?"),
                 next: function(choice) {
-                    // TODO: validate entered clinic code
+                    // TODO #8: validate entered training code
                     return go.utils
                         .register_attendance(self.im, self.contact, choice)
                         .then(function() {
