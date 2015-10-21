@@ -28,6 +28,7 @@ describe("emergingleaders app", function() {
                     endpoints: {
                         "sms": {"delivery_class": "sms"}
                     },
+                    testing_today: '2015-03-03T15:08:08.000',
                 })
                 .setup(function(api) {
                     fixtures().forEach(function(d) {
@@ -391,6 +392,40 @@ describe("emergingleaders app", function() {
                             assert.equal(contact.extra.sa_id, '5002285000007');
                             assert.equal(contact.extra.dob, '1950-02-28');
                             assert.equal(contact.extra.gender, 'male');
+                        })
+                        .run();
+                });
+            });
+
+            describe("upon birth year entry", function() {
+                it("should go to state_birth_month", function() {
+                    return tester
+                        .setup.user.addr('082111')
+                        .inputs(
+                            {session_event: 'new'}  // dial in
+                            , '3'  // state_language - afrikaans
+                            , '111'  // state_training_code
+                            , 'Jan Mopiso'  // state_name
+                            , '3'  // state_id_type - none
+                            , '1995'  // state_birth_year
+                        )
+                        .check.interaction({
+                            state: 'state_birth_month',
+                            reply: [
+                                'Please enter the month that you were born',
+                                '1. Jan',
+                                '2. Feb',
+                                '3. Mar',
+                                '4. Apr',
+                                '5. May',
+                                '6. Jun',
+                                '7. Jul',
+                                '8. Aug',
+                                '9. Sep',
+                                '10. Oct',
+                                '11. Nov',
+                                '12. Dec'
+                            ].join('\n')
                         })
                         .run();
                 });

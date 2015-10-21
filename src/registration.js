@@ -218,7 +218,7 @@ go.app = function() {
                 question: question,
                 check: function(content) {
                     if (!go.utils.check_number_in_range(content, 1900,
-                        go.utils.get_today(self.im.config).getFullYear() - 6)) {
+                        go.utils.get_today(self.im.config).year() - 6)) {
                         // assumes youngest possible participant age is 6 years old
                         return error;
                     }
@@ -228,7 +228,24 @@ go.app = function() {
                     return self.im.contacts
                         .save(self.contact)
                         .then(function() {
-                            return 'states_birth_month';
+                            return 'state_birth_month';
+                        });
+                }
+            });
+        });
+
+        self.states.add('state_birth_month', function(name) {
+            return new ChoiceState(name, {
+                question: $('Please enter the month that you were born'),
+                choices: go.utils.make_month_choices($, 0, 12),
+                next: function(choice) {
+                    self.contact.extra.birth_month = choice.value;
+                    return self.im.contacts
+                        .save(self.contact)
+                        .then(function() {
+                            return {
+                                name: 'states_birth_day'
+                            };
                         });
                 }
             });

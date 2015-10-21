@@ -10,6 +10,8 @@ var Q = require('q');
 var moment = require('moment');
 var vumigo = require('vumigo_v02');
 var JsonApi = vumigo.http.api.JsonApi;
+var vumigo = require('vumigo_v02');
+var Choice = vumigo.states.Choice;
 
 
 // override moment default century switch at '68 with '49
@@ -110,6 +112,37 @@ go.utils = {
                 && (parseInt(input, 10) <= end);
     },
 
+    // make choices options with options
+    make_month_choices: function($, start, limit) {
+        // start should be 0 for Jan - array position
+        var choices = [
+                new Choice('01', $('Jan')),
+                new Choice('02', $('Feb')),
+                new Choice('03', $('Mar')),
+                new Choice('04', $('Apr')),
+                new Choice('05', $('May')),
+                new Choice('06', $('Jun')),
+                new Choice('07', $('Jul')),
+                new Choice('08', $('Aug')),
+                new Choice('09', $('Sep')),
+                new Choice('10', $('Oct')),
+                new Choice('11', $('Nov')),
+                new Choice('12', $('Dec'))
+            ];
+
+        var choices_show = [];
+        var choices_show_count = 0;
+        var end = start + limit;
+
+        for (var i=start; i<end; i++) {
+            var val = (i >= 12 ? (i-12) : i);
+            choices_show[choices_show_count] = choices[val];
+            choices_show_count++;
+        }
+
+        return choices_show;
+    },
+
     registration_api_call: function (method, params, payload, endpoint, im) {
         var http = new JsonApi(im, {
             headers: {
@@ -156,11 +189,12 @@ go.utils = {
         } else {
             today = new moment();
         }
-        return today.format('YYYY-MM-DD hh:mm:ss.SSS');
+        return today;
     },
 
     opt_out: function(im, contact) {
-        contact.extra.optout_last_attempt = go.utils.get_today(im.config);
+        contact.extra.optout_last_attempt = go.utils
+            .get_today(im.config).format('YYYY-MM-DD hh:mm:ss.SSS');
 
         return Q.all([
             im.contacts.save(contact),
@@ -174,7 +208,8 @@ go.utils = {
 
 
     opt_in: function(im, contact) {
-        contact.extra.optin_last_attempt = go.utils.get_today(im.config);
+        contact.extra.optin_last_attempt = go.utils
+            .get_today(im.config).format('YYYY-MM-DD hh:mm:ss.SSS');
         return Q.all([
             im.contacts.save(contact),
             im.api_request('optout.cancel_optout', {
