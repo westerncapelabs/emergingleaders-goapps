@@ -420,6 +420,25 @@ describe("emergingleaders app", function() {
             });
 
             describe("upon birth year entry", function() {
+                it("should loop back if invalid year", function() {
+                    return tester
+                        .setup.user.addr('082111')
+                        .inputs(
+                            {session_event: 'new'}  // dial in
+                            , '3'  // state_language - afrikaans
+                            , '111'  // state_training_code
+                            , 'Jan Mopiso'  // state_name
+                            , '3'  // state_id_type - none
+                            , '2010'  // state_birth_year (too young)
+                        )
+                        .check.interaction({
+                            state: 'state_birth_year',
+                            reply: 'There was an error in your entry. Please carefully enter ' +
+                                   'your year of birth again (for example: 2001)'
+                        })
+                        .run();
+                });
+
                 it("should go to state_birth_month", function() {
                     return tester
                         .setup.user.addr('082111')
