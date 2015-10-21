@@ -41,10 +41,13 @@ go.utils = {
     },
 
     register_attendance: function(im, contact, training_code) {
-        // TODO: api post attendance
+        // TODO #6: api post attendance
         contact.extra.last_training_code = training_code;
-        im.contacts.save(contact);
-        return Q();
+        return im.contacts
+            .save(contact)
+            .then(function() {
+                return Q();
+            });
     },
 
     validate_id_sa: function(id) {
