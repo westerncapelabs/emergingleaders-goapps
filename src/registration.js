@@ -236,8 +236,7 @@ go.app = function() {
         self.states.add('state_birth_year', function(name, opts) {
             var error = $('There was an error in your entry. Please carefully enter your ' +
                           'year of birth again (for example: 2001)');
-            var question = $('Please enter the year that the pregnant mother was born' +
-                             '(for example: 1981)');
+            var question = $('Please enter the year that you were born (for example: 1981)');
 
             return new FreeText(name, {
                 question: question,

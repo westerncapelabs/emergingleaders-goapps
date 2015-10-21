@@ -362,8 +362,7 @@ describe("emergingleaders app", function() {
                         )
                         .check.interaction({
                             state: 'state_birth_year',
-                            reply: 'Please enter the year that the pregnant mother was born' +
-                                   '(for example: 1981)'
+                            reply: 'Please enter the year that you wer born (for example: 1981)'
                         })
                         .run();
                 });
