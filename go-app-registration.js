@@ -474,9 +474,8 @@ go.app = function() {
         });
 
         self.states.add('state_birth_day', function(name) {
-            var error = $('There was an error in your entry. Please ' +
-                        'carefully enter the mother\'s day of birth again ' +
-                        '(for example: 8)');
+            var error = $('There was an error in your entry. Please carefully ' +
+                        'enter your day of birth again (for example: 8)');
             var question = $('Please enter the day that you were born (for example: 14).');
 
             return new FreeText(name, {

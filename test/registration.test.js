@@ -494,6 +494,51 @@ describe("emergingleaders app", function() {
             });
 
             describe("upon birth day entry", function() {
+                it("should loop back if unrealistic day", function() {
+                    return tester
+                        .setup.user.addr('082111')
+                        .inputs(
+                            {session_event: 'new'}  // dial in
+                            , '3'  // state_language - afrikaans
+                            , '111'  // state_training_code
+                            , 'Jan Mopiso'  // state_name
+                            , '3'  // state_id_type - none
+                            , '1995'  // state_birth_year
+                            , '7'  // state_birth_month - July
+                            , '32'  // state_birth_day
+                        )
+                        .check.interaction({
+                            state: 'state_birth_day',
+                            reply: 'There was an error in your entry. Please carefully ' +
+                                   'enter your day of birth again (for example: 8)'
+                        })
+                        .run();
+                });
+
+                it("should go to state_invalid_dob if date doesn't exist", function() {
+                    return tester
+                        .setup.user.addr('082111')
+                        .inputs(
+                            {session_event: 'new'}  // dial in
+                            , '3'  // state_language - afrikaans
+                            , '111'  // state_training_code
+                            , 'Jan Mopiso'  // state_name
+                            , '3'  // state_id_type - none
+                            , '1995'  // state_birth_year
+                            , '2'  // state_birth_month - February
+                            , '30'  // state_birth_day - 30th Feb doesn't exist
+                        )
+                        .check.interaction({
+                            state: 'state_invalid_dob',
+                            reply: [
+                                'The date you entered (1995-02-30) is not a real date. ' +
+                                'Please try again.',
+                                "1. Continue"
+                            ].join('\n')
+                        })
+                        .run();
+                });
+
                 it("should go to state_gender, save dob extra", function() {
                     return tester
                         .setup.user.addr('082111')
@@ -521,6 +566,28 @@ describe("emergingleaders app", function() {
                             });
                             assert.equal(contact.extra.id_type, 'none');
                             assert.equal(contact.extra.dob, '1995-07-18');
+                        })
+                        .run();
+                });
+            });
+
+            describe("upon state_invalid_dob entry", function() {
+                it("should go back to state_birth_year", function() {
+                    return tester
+                        .setup.user.addr('082111')
+                        .inputs(
+                            {session_event: 'new'}  // dial in
+                            , '3'  // state_language - afrikaans
+                            , '111'  // state_training_code
+                            , 'Jan Mopiso'  // state_name
+                            , '3'  // state_id_type - none
+                            , '1995'  // state_birth_year
+                            , '2'  // state_birth_month - February
+                            , '30'  // state_birth_day - 30th Feb doesn't exist
+                            , '1'
+                        )
+                        .check.interaction({
+                            state: 'state_birth_year',
                         })
                         .run();
                 });
