@@ -370,6 +370,25 @@ describe("emergingleaders app", function() {
             });
 
             describe("upon id number entry", function() {
+                it("should loop back if invalid id", function() {
+                    return tester
+                        .setup.user.addr('082111')
+                        .inputs(
+                            {session_event: 'new'}  // dial in
+                            , '3'  // state_language - afrikaans
+                            , '111'  // state_training_code
+                            , 'Jan Mopiso'  // state_name
+                            , '1'  // state_id_type - sa_id
+                            , '99999'  // state_sa_id
+                        )
+                        .check.interaction({
+                            state: 'state_sa_id',
+                            reply: 'Sorry, your ID number did not validate. ' +
+                                   'Please re-enter your SA ID number:'
+                        })
+                        .run();
+                });
+
                 it("should go to state_end, save extras if id validates, update participant info",
                 function() {
                     return tester
@@ -395,6 +414,7 @@ describe("emergingleaders app", function() {
                             assert.equal(contact.extra.dob, '1950-02-28');
                             assert.equal(contact.extra.gender, 'male');
                         })
+                        // participant info checked via fixture
                         .run();
                 });
             });
