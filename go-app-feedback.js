@@ -192,6 +192,20 @@ go.utils = {
         return today;
     },
 
+    double_digit_day: function(input) {
+        input_num = parseInt(input, 10);
+        return input_num < 10 ? "0" + input_num.toString() : input;
+    },
+
+    get_entered_birth_date: function(year, month, day) {
+      return year + '-' + month + '-' + go.utils.double_digit_day(day);
+    },
+
+    is_valid_date: function(date, format) {
+        // implements strict validation with 'true' below
+        return moment(date, format, true).isValid();
+    },
+
     opt_out: function(im, contact) {
         contact.extra.optout_last_attempt = go.utils
             .get_today(im.config).format('YYYY-MM-DD hh:mm:ss.SSS');

@@ -223,14 +223,7 @@ go.app = function() {
                         return error;
                     }
                 },
-                next: function(content) {
-                    self.contact.extra.birth_year = content;
-                    return self.im.contacts
-                        .save(self.contact)
-                        .then(function() {
-                            return 'state_birth_month';
-                        });
-                }
+                next: 'state_birth_month'
             });
         });
 
@@ -238,14 +231,71 @@ go.app = function() {
             return new ChoiceState(name, {
                 question: $('Please enter the month that you were born'),
                 choices: go.utils.make_month_choices($, 0, 12),
+                next: 'state_birth_day'
+            });
+        });
+
+        self.states.add('state_birth_day', function(name) {
+            var error = $('There was an error in your entry. Please ' +
+                        'carefully enter the mother\'s day of birth again ' +
+                        '(for example: 8)');
+            var question = $('Please enter the day that you were born (for example: 14).');
+
+            return new FreeText(name, {
+                question: question,
+                check: function(content) {
+                    if (!go.utils.check_number_in_range(content, 1, 31)) {
+                        return error;
+                    }
+                },
+                next: function(content) {
+                    var dob = go.utils.get_entered_birth_date(
+                                  self.im.user.answers.state_birth_year,
+                                  self.im.user.answers.state_birth_month,
+                                  content);
+
+                    if (go.utils.is_valid_date(dob, 'YYYY-MM-DD')) {
+                        self.contact.extra.dob = dob;
+                        return self.im.contacts
+                            .save(self.contact)
+                            .then(function() {
+                                return 'state_gender';
+                            });
+                    } else {
+                        return {
+                            name: 'state_invalid_dob',
+                            creator_opts: {dob: dob}
+                        };
+                    }
+                }
+            });
+        });
+
+        self.states.add('state_invalid_dob', function(name, opts) {
+            return new ChoiceState(name, {
+                question:
+                    $('The date you entered ({{dob}}) is not a real date. Please try again.'
+                     ).context({ dob: opts.dob }),
+                choices: [
+                    new Choice('continue', $('Continue'))
+                ],
+                next: 'state_birth_year'
+            });
+        });
+
+        self.states.add('state_gender', function(name, opts) {
+            return new ChoiceState(name, {
+                question: $("What is your gender?"),
+                choices: [
+                    new Choice('male', $('Male')),
+                    new Choice('female', $('Female'))
+                ],
                 next: function(choice) {
-                    self.contact.extra.birth_month = choice.value;
+                    self.contact.extra.gender = choice.value;
                     return self.im.contacts
                         .save(self.contact)
                         .then(function() {
-                            return {
-                                name: 'states_birth_day'
-                            };
+                            return 'state_end';
                         });
                 }
             });

@@ -370,7 +370,8 @@ describe("emergingleaders app", function() {
             });
 
             describe("upon id number entry", function() {
-                it("should go to state_end, save extras if id validates", function() {
+                it("should go to state_end, save extras if id validates, update participant info",
+                function() {
                     return tester
                         .setup.user.addr('082111')
                         .inputs(
@@ -389,6 +390,7 @@ describe("emergingleaders app", function() {
                             var contact = _.find(api.contacts.store, {
                               msisdn: '+082111'
                             });
+                            assert.equal(contact.extra.id_type, 'sa_id');
                             assert.equal(contact.extra.sa_id, '5002285000007');
                             assert.equal(contact.extra.dob, '1950-02-28');
                             assert.equal(contact.extra.gender, 'male');
@@ -427,6 +429,89 @@ describe("emergingleaders app", function() {
                                 '12. Dec'
                             ].join('\n')
                         })
+                        .run();
+                });
+            });
+
+            describe("upon birth month entry", function() {
+                it("should go to state_birth_day", function() {
+                    return tester
+                        .setup.user.addr('082111')
+                        .inputs(
+                            {session_event: 'new'}  // dial in
+                            , '3'  // state_language - afrikaans
+                            , '111'  // state_training_code
+                            , 'Jan Mopiso'  // state_name
+                            , '3'  // state_id_type - none
+                            , '1995'  // state_birth_year
+                            , '7'  // state_birth_month - July
+                        )
+                        .check.interaction({
+                            state: 'state_birth_day',
+                            reply: 'Please enter the day that you were born (for example: 14).'
+                        })
+                        .run();
+                });
+            });
+
+            describe("upon birth day entry", function() {
+                it("should go to state_gender, save dob extra", function() {
+                    return tester
+                        .setup.user.addr('082111')
+                        .inputs(
+                            {session_event: 'new'}  // dial in
+                            , '3'  // state_language - afrikaans
+                            , '111'  // state_training_code
+                            , 'Jan Mopiso'  // state_name
+                            , '3'  // state_id_type - none
+                            , '1995'  // state_birth_year
+                            , '7'  // state_birth_month - July
+                            , '18'  // state_birth_day
+                        )
+                        .check.interaction({
+                            state: 'state_gender',
+                            reply: [
+                                "What is your gender?",
+                                "1. Male",
+                                "2. Female"
+                            ].join('\n')
+                        })
+                        .check(function(api) {
+                            var contact = _.find(api.contacts.store, {
+                              msisdn: '+082111'
+                            });
+                            assert.equal(contact.extra.id_type, 'none');
+                            assert.equal(contact.extra.dob, '1995-07-18');
+                        })
+                        .run();
+                });
+            });
+
+            describe("upon gender entry", function() {
+                it("should go to state_end, save gender extra, update participant info", function() {
+                    return tester
+                        .setup.user.addr('082111')
+                        .inputs(
+                            {session_event: 'new'}  // dial in
+                            , '3'  // state_language - afrikaans
+                            , '111'  // state_training_code
+                            , 'Jan Mopiso'  // state_name
+                            , '3'  // state_id_type - none
+                            , '1995'  // state_birth_year
+                            , '7'  // state_birth_month - July
+                            , '18'  // state_birth_day
+                            , '1'  // state_end - male
+                        )
+                        .check.interaction({
+                            state: 'state_end'
+                        })
+                        .check(function(api) {
+                            var contact = _.find(api.contacts.store, {
+                              msisdn: '+082111'
+                            });
+                            assert.equal(contact.extra.gender, 'male');
+                        })
+                        // participant info checked via fixture
                         .run();
                 });
             });
