@@ -96,6 +96,11 @@ go.utils = {
         return im.contacts.save(contact);
     },
 
+    is_alpha_numeric_only: function(input) {
+        alpha_numeric = new RegExp('^[A-Za-z0-9]+$');
+        return alpha_numeric.test(input);
+    },
+
     check_valid_number: function(input){
         // an attempt to solve the insanity of JavaScript numbers
         var numbers_only = new RegExp('^\\d+$');

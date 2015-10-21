@@ -96,6 +96,11 @@ go.utils = {
         return im.contacts.save(contact);
     },
 
+    is_alpha_numeric_only: function(input) {
+        alpha_numeric = new RegExp('^[A-Za-z0-9]+$');
+        return alpha_numeric.test(input);
+    },
+
     check_valid_number: function(input){
         // an attempt to solve the insanity of JavaScript numbers
         var numbers_only = new RegExp('^\\d+$');
@@ -440,7 +445,32 @@ go.app = function() {
                     return self.im.contacts
                         .save(self.contact)
                         .then(function() {
-                            return 'states_passport_no';
+                            return 'state_passport_no';
+                        });
+                }
+            });
+        });
+
+        self.states.add('state_passport_no', function(name) {
+            var error = $('There was an error in your entry. Please ' +
+                        'carefully enter the passport number again.');
+            var question = $('Please enter your Passport number:');
+
+            return new FreeText(name, {
+                question: question,
+                check: function(content) {
+                    if (!go.utils.is_alpha_numeric_only(content) || content.length <= 4) {
+                        return error;
+                    }
+                },
+                next: function(content) {
+                    self.contact.extra.passport_no = content;
+                    return self.im.contacts
+                        .save(self.contact)
+                        .then(function() {
+                            return {
+                                name: 'state_birth_year'
+                            };
                         });
                 }
             });

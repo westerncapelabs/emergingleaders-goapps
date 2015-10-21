@@ -202,7 +202,32 @@ go.app = function() {
                     return self.im.contacts
                         .save(self.contact)
                         .then(function() {
-                            return 'states_passport_no';
+                            return 'state_passport_no';
+                        });
+                }
+            });
+        });
+
+        self.states.add('state_passport_no', function(name) {
+            var error = $('There was an error in your entry. Please ' +
+                        'carefully enter the passport number again.');
+            var question = $('Please enter your Passport number:');
+
+            return new FreeText(name, {
+                question: question,
+                check: function(content) {
+                    if (!go.utils.is_alpha_numeric_only(content) || content.length <= 4) {
+                        return error;
+                    }
+                },
+                next: function(content) {
+                    self.contact.extra.passport_no = content;
+                    return self.im.contacts
+                        .save(self.contact)
+                        .then(function() {
+                            return {
+                                name: 'state_birth_year'
+                            };
                         });
                 }
             });

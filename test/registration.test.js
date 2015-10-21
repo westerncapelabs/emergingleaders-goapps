@@ -419,6 +419,74 @@ describe("emergingleaders app", function() {
                 });
             });
 
+            describe("upon state_passport_origin entry", function() {
+                it("should go to state_passport_no", function() {
+                    return tester
+                        .setup.user.addr('082111')
+                        .inputs(
+                            {session_event: 'new'}  // dial in
+                            , '3'  // state_language - afrikaans
+                            , '111'  // state_training_code
+                            , 'Jan Mopiso'  // state_name
+                            , '2'  // state_id_type - passport
+                            , '4'  // state_passport_origin - Nigeria
+                        )
+                        .check.interaction({
+                            state: 'state_passport_no',
+                            reply: 'Please enter your Passport number:'
+                        })
+                        .run();
+                });
+            });
+
+            describe("upon passport number entry", function() {
+                it("should loop back if invalid passport no", function() {
+                    return tester
+                        .setup.user.addr('082111')
+                        .inputs(
+                            {session_event: 'new'}  // dial in
+                            , '3'  // state_language - afrikaans
+                            , '111'  // state_training_code
+                            , 'Jan Mopiso'  // state_name
+                            , '2'  // state_id_type - passport
+                            , '4'  // state_passport_origin - Nigeria
+                            , '#1234'  // state_passport_no
+                        )
+                        .check.interaction({
+                            state: 'state_passport_no',
+                            reply: 'There was an error in your entry. Please ' +
+                                   'carefully enter the passport number again.'
+                        })
+                        .run();
+                });
+
+                it("should go to state_birth_year, save passport extras", function() {
+                    return tester
+                        .setup.user.addr('082111')
+                        .inputs(
+                            {session_event: 'new'}  // dial in
+                            , '3'  // state_language - afrikaans
+                            , '111'  // state_training_code
+                            , 'Jan Mopiso'  // state_name
+                            , '2'  // state_id_type - passport
+                            , '4'  // state_passport_origin - Nigeria
+                            , 'AB1234'  // state_passport_no
+                        )
+                        .check.interaction({
+                            state: 'state_birth_year'
+                        })
+                        .check(function(api) {
+                            var contact = _.find(api.contacts.store, {
+                              msisdn: '+082111'
+                            });
+                            assert.equal(contact.extra.id_type, 'passport');
+                            assert.equal(contact.extra.passport_origin, 'ng');
+                            assert.equal(contact.extra.passport_no, 'AB1234');
+                        })
+                        .run();
+                });
+            });
+
             describe("upon birth year entry", function() {
                 it("should loop back if invalid year", function() {
                     return tester
@@ -594,7 +662,8 @@ describe("emergingleaders app", function() {
             });
 
             describe("upon gender entry", function() {
-                it("should go to state_end, save gender extra, update participant info", function() {
+                it("should go to state_end, save gender extra, update participant info",
+                function() {
                     return tester
                         .setup.user.addr('082111')
                         .inputs(
