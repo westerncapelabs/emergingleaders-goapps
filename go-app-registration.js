@@ -66,7 +66,6 @@ go.utils = {
                     return false;
                 });
         }
-
     },
 
     register_attendance: function(im, contact, training_code) {
@@ -142,7 +141,6 @@ go.utils = {
                 && (parseInt(input, 10) <= end);
     },
 
-    // make choices options with options
     make_month_choices: function($, start, limit) {
         // start should be 0 for Jan - array position
         var choices = [
@@ -202,9 +200,6 @@ go.utils = {
             }
     },
 
-
-    // SMSINBOUND ONLY
-
     get_clean_first_word: function(user_message) {
         return user_message
             .split(" ")[0]          // split off first word
@@ -249,7 +244,6 @@ go.utils = {
             })
         ]);
     },
-
 
     opt_in: function(im, contact) {
         contact.extra.optin_last_attempt = go.utils
