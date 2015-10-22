@@ -47,6 +47,18 @@ go.utils = {
         ]);
     },
 
+    validate_training_code: function(im, training_code) {
+        var endpoint = "events/" + training_code + "/";
+        return go.utils
+            .el_api_call(endpoint, "get", {}, {}, im)
+            .then(function(response) {
+                return response.code === 200;
+            })
+            .catch(function(error) {
+                return false;
+            });
+    },
+
     register_attendance: function(im, contact, training_code) {
         // TODO #6: api post attendance
         contact.extra.last_training_code = training_code;
@@ -151,32 +163,32 @@ go.utils = {
         return choices_show;
     },
 
-    registration_api_call: function (method, params, payload, endpoint, im) {
+    el_api_call: function (endpoint, method, params, payload, im) {
         var http = new JsonApi(im, {
             headers: {
-                'Authorization': ['Token ' + im.config.registration_api.api_key]
+                'Authorization': ['Token ' + im.config.el_api.api_key]
             }
         });
         switch (method) {
             case "post":
-                return http.post(im.config.registration_api.url + endpoint, {
+                return http.post(im.config.el_api.base_url + endpoint, {
                     data: payload
                 });
             case "get":
-                return http.get(im.config.registration_api.url + endpoint, {
+                return http.get(im.config.el_api.base_url + endpoint, {
                     params: params
                 });
             case "patch":
-                return http.patch(im.config.registration_api.url + endpoint, {
+                return http.patch(im.config.el_api.base_url + endpoint, {
                     data: payload
                 });
             case "put":
-                return http.put(im.config.registration_api.url + endpoint, {
+                return http.put(im.config.el_api.base_url + endpoint, {
                     params: params,
                   data: payload
                 });
             case "delete":
-                return http.delete(im.config.registration_api.url + endpoint);
+                return http.delete(im.config.el_api.base_url + endpoint);
             }
     },
 
@@ -354,12 +366,22 @@ go.app = function() {
         });
 
         self.states.add('state_training_code', function(name) {
+            var error = $("Sorry, the training session code you entered does not exist. " +
+                          "Please try again");
             return new FreeText(name, {
                 question: $("What is your training session code?"),
-                next: function(choice) {
-                    // TODO #8: validate entered training code
+                check: function(content) {
                     return go.utils
-                        .register_attendance(self.im, self.contact, choice)
+                        .validate_training_code(self.im, content)
+                        .then(function(validates) {
+                            if (validates === false) {
+                                return error;
+                            }
+                        });
+                },
+                next: function(content) {
+                    return go.utils
+                        .register_attendance(self.im, self.contact, content)
                         .then(function() {
                             if (self.contact.extra.details_completed === "v1") {
                                 return 'state_end';

@@ -108,12 +108,22 @@ go.app = function() {
         });
 
         self.states.add('state_training_code', function(name) {
+            var error = $("Sorry, the training session code you entered does not exist. " +
+                          "Please try again");
             return new FreeText(name, {
                 question: $("What is your training session code?"),
-                next: function(choice) {
-                    // TODO #8: validate entered training code
+                check: function(content) {
                     return go.utils
-                        .register_attendance(self.im, self.contact, choice)
+                        .validate_training_code(self.im, content)
+                        .then(function(validates) {
+                            if (!validates) {
+                                return error;
+                            }
+                        });
+                },
+                next: function(content) {
+                    return go.utils
+                        .register_attendance(self.im, self.contact, content)
                         .then(function() {
                             if (self.contact.extra.details_completed === "v1") {
                                 return 'state_end';
