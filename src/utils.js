@@ -43,7 +43,7 @@ go.utils = {
     validate_training_code: function(im, training_code) {
         // First check if training code is numeric before making api call
         if (!go.utils.check_valid_number(training_code)) {
-            return Q()
+            return Q()  // A promise is expected
                 .then(function() {
                     return false;
                 });
