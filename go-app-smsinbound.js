@@ -48,15 +48,25 @@ go.utils = {
     },
 
     validate_training_code: function(im, training_code) {
-        var endpoint = "events/" + training_code + "/";
-        return go.utils
-            .el_api_call(endpoint, "get", {}, {}, im)
-            .then(function(response) {
-                return response.code === 200;
-            })
-            .catch(function(error) {
-                return false;
-            });
+        // First check if training code is numeric before making api call
+        if (!go.utils.check_valid_number(training_code)) {
+            return Q()
+                .then(function() {
+                    return false;
+                });
+        } else {
+            // Check via api call if number is valid
+            var endpoint = "events/" + training_code + "/";
+            return go.utils
+                .el_api_call(endpoint, "get", {}, {}, im)
+                .then(function(response) {
+                    return response.code === 200;
+                })
+                .catch(function(error) {
+                    return false;
+                });
+        }
+
     },
 
     register_attendance: function(im, contact, training_code) {
@@ -116,7 +126,7 @@ go.utils = {
         return alpha_numeric.test(input);
     },
 
-    check_valid_number: function(input){
+    check_valid_number: function(input) {
         // an attempt to solve the insanity of JavaScript numbers
         var numbers_only = new RegExp('^\\d+$');
         if (input !== '' && numbers_only.test(input) && !Number.isNaN(Number(input))){
@@ -126,7 +136,7 @@ go.utils = {
         }
     },
 
-    check_number_in_range: function(input, start, end){
+    check_number_in_range: function(input, start, end) {
         return go.utils.check_valid_number(input)
                 && (parseInt(input, 10) >= start)
                 && (parseInt(input, 10) <= end);

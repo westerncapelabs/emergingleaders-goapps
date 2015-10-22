@@ -251,13 +251,29 @@ describe("emergingleaders app", function() {
             });
 
             describe("upon training code entry", function() {
-                it("should loop back if the training code is invalid", function() {
+                it("should loop back if the training code is invalid - not a number", function() {
                     return tester
                         .setup.user.addr('082111')
                         .inputs(
                             {session_event: 'new'}  // dial in
                             , '3'  // state_language - afrikaans
-                            , '999'  // state_training_code - bad code
+                            , 'abc'  // state_training_code - not numeric only
+                        )
+                        .check.interaction({
+                            state: 'state_training_code',
+                            reply: "Sorry, the training session code you entered does not exist. " +
+                                   "Please try again"
+                        })
+                        .run();
+                });
+
+                it("should loop back if the training code is invalid - no event", function() {
+                    return tester
+                        .setup.user.addr('082111')
+                        .inputs(
+                            {session_event: 'new'}  // dial in
+                            , '3'  // state_language - afrikaans
+                            , '999'  // state_training_code - event doesn't exist
                         )
                         .check.interaction({
                             state: 'state_training_code',
