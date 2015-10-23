@@ -58,7 +58,8 @@ describe("emergingleaders app", function() {
                             sa_id: '5101025009086',
                             dob: '1951-01-02',
                             gender: 'male',
-                            details_completed: "v1"
+                            details_completed: "v1",
+                            // participant_id: 222
                         },
                         key: "contact_key_082222",
                         user_account: "contact_user_account"
@@ -444,6 +445,7 @@ describe("emergingleaders app", function() {
                             assert.equal(contact.extra.sa_id, '5002285000007');
                             assert.equal(contact.extra.dob, '1950-02-28');
                             assert.equal(contact.extra.gender, 'male');
+                            assert.equal(contact.extra.details_completed, 'v1');
                         })
                         // participant info checked via fixture
                         .run();
@@ -716,6 +718,7 @@ describe("emergingleaders app", function() {
                               msisdn: '+082111'
                             });
                             assert.equal(contact.extra.gender, 'male');
+                            assert.equal(contact.extra.details_completed, 'v1');
                         })
                         // participant info checked via fixture
                         .run();
