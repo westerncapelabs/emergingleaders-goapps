@@ -325,6 +325,7 @@ go.app = function() {
                 ],
                 next: function(choice) {
                     self.contact.extra.gender = choice.value;
+                    self.contact.extra.details_completed = "v1";
                     return self.im.contacts
                         .save(self.contact)
                         .then(function() {

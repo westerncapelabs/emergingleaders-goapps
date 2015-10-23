@@ -61,13 +61,66 @@ go.utils = {
         }
     },
 
+    get_participant_id_by_msisdn: function(participant_msisdn, im) {
+        var params = {msisdn: participant_msisdn};
+        return go.utils
+            .el_api_call("participants/", "get", params, {}, im)
+            .then(function(response) {
+                var participants_found = response.data.results;
+                // Return the first participant's id
+                return (participants_found.length > 0)
+                    ? participants_found[0].id
+                    : null;
+            });
+    },
+
+    create_participant: function(participant_msisdn, im) {
+        var payload = {"msisdn": participant_msisdn};
+        return go.utils
+            .el_api_call("participants/", "post", {}, payload, im)
+            .then(function(response) {
+                var participant_created = response.data;
+                // Return the participants's id
+                return participant_created.id;
+            });
+    },
+
+    get_or_create_participant: function(im, contact) {
+        return go.utils
+            .get_participant_id_by_msisdn(contact.msisdn, im)
+            .then(function(participant_id) {
+                if (participant_id !== null) {
+                    // Participant exists - return the id
+                    return participant_id;
+                } else {
+                    // Participant doesn't exist - create it
+                    return go.utils
+                        .create_participant(contact.msisdn, im)
+                        .then(function(participant_id) {
+                            return participant_id;
+                        });
+                }
+            });
+    },
+
     register_attendance: function(im, contact, training_code) {
         // TODO #6: api post attendance
         contact.extra.last_training_code = training_code;
         return im.contacts
             .save(contact)
             .then(function() {
-                return Q();
+                return go.utils
+                    .get_or_create_participant(im, contact)
+                    .then(function(participant_id) {
+                        var attendee_data = {
+                            "event": "/api/v1/events/" + training_code + "/",
+                            "participant": "/api/v1/participants/" + participant_id + "/"
+                        };
+                        return go.utils
+                            .el_api_call("attendees/", "post", {}, attendee_data, im)
+                            .then(function(response) {
+                            });
+                    });
             });
     },
 
@@ -110,6 +163,7 @@ go.utils = {
         contact.extra.sa_id = id;
         contact.extra.dob = go.utils.extract_id_dob(id);
         contact.extra.gender = go.utils.extract_id_gender(id);
+        contact.extra.details_completed = "v1";
         return im.contacts.save(contact);
     },
 
