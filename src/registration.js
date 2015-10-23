@@ -187,7 +187,7 @@ go.app = function() {
                 },
                 next: function(content) {
                     return go.utils
-                        .save_id_dob_gender_extras(self.im, self.contact, content)
+                        .save_participant_sa_id(self.im, self.contact, content)
                         .then(function() {
                             return 'state_end';
                         });
@@ -207,14 +207,7 @@ go.app = function() {
                     new Choice('so', $('Somalia')),
                     new Choice('other', $('Other'))
                 ],
-                next: function(choice) {
-                    self.contact.extra.passport_origin = choice.value;
-                    return self.im.contacts
-                        .save(self.contact)
-                        .then(function() {
-                            return 'state_passport_no';
-                        });
-                }
+                next: 'state_passport_no'
             });
         });
 
@@ -231,13 +224,10 @@ go.app = function() {
                     }
                 },
                 next: function(content) {
-                    self.contact.extra.passport_no = content;
-                    return self.im.contacts
-                        .save(self.contact)
+                    return go.utils
+                        .save_participant_passport(self.im, self.contact, content)
                         .then(function() {
-                            return {
-                                name: 'state_birth_year'
-                            };
+                            return 'state_birth_year';
                         });
                 }
             });
@@ -324,10 +314,8 @@ go.app = function() {
                     new Choice('female', $('Female'))
                 ],
                 next: function(choice) {
-                    self.contact.extra.gender = choice.value;
-                    self.contact.extra.details_completed = "v1";
-                    return self.im.contacts
-                        .save(self.contact)
+                    return go.utils
+                        .save_participant_dob_gender(self.im, self.contact, choice.value)
                         .then(function() {
                             return 'state_end';
                         });

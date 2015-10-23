@@ -74,37 +74,49 @@ go.utils = {
             });
     },
 
-    create_participant: function(participant_msisdn, im) {
-        var payload = {"msisdn": participant_msisdn};
+    create_participant: function(contact, im) {
+        var payload = {"msisdn": contact.msisdn,
+                       "lang": im.user.lang};
         return go.utils
             .el_api_call("participants/", "post", {}, payload, im)
             .then(function(response) {
                 var participant_created = response.data;
                 // Return the participants's id
-                return participant_created.id;
+                contact.extra.participant_id = (participant_created.id).toString();
+                return im.contacts
+                    .save(contact)
+                    .then(function() {
+                        return participant_created.id;
+                    });
             });
     },
 
     get_or_create_participant: function(im, contact) {
-        return go.utils
-            .get_participant_id_by_msisdn(contact.msisdn, im)
-            .then(function(participant_id) {
-                if (participant_id !== null) {
-                    // Participant exists - return the id
-                    return participant_id;
-                } else {
-                    // Participant doesn't exist - create it
-                    return go.utils
-                        .create_participant(contact.msisdn, im)
-                        .then(function(participant_id) {
-                            return participant_id;
-                        });
-                }
-            });
+        if (contact.extra.participant_id !== undefined) {
+            return Q()
+                .then(function() {
+                    return contact.extra.participant_id;
+                });
+        } else {
+            return go.utils
+                .get_participant_id_by_msisdn(contact.msisdn, im)
+                .then(function(participant_id) {
+                    if (participant_id !== null) {
+                        // Participant exists - return the id
+                        return participant_id;
+                    } else {
+                        // Participant doesn't exist - create it
+                        return go.utils
+                            .create_participant(contact, im)
+                            .then(function(participant_id) {
+                                return participant_id;
+                            });
+                    }
+                });
+        }
     },
 
     register_attendance: function(im, contact, training_code) {
-        // TODO #6: api post attendance
         contact.extra.last_training_code = training_code;
         return im.contacts
             .save(contact)
@@ -117,9 +129,7 @@ go.utils = {
                             "participant": "/api/v1/participants/" + participant_id + "/"
                         };
                         return go.utils
-                            .el_api_call("attendees/", "post", {}, attendee_data, im)
-                            .then(function(response) {
-                            });
+                            .el_api_call("attendees/", "post", {}, attendee_data, im);
                     });
             });
     },
@@ -159,12 +169,66 @@ go.utils = {
         return parseInt(id.slice(6,7), 10) >= 5 ? 'male' : 'female';
     },
 
-    save_id_dob_gender_extras: function(im, contact, id) {
+    update_participant: function(im, contact, payload) {
+        return go.utils
+            .get_or_create_participant(im, contact)
+            .then(function(participant_id) {
+                var endpoint = "participants/" + participant_id + "/";
+                return go.utils
+                    .el_api_call(endpoint, "patch", {}, payload, im);
+            });
+    },
+
+    save_participant_dob_gender: function(im, contact, gender) {
+        contact.extra.gender = gender;
+        contact.extra.details_completed = "v1";
+        return im.contacts
+            .save(contact)
+            .then(function() {
+                payload = {
+                    "dob": contact.extra.dob,
+                    "gender": contact.extra.gender
+                };
+                return go.utils
+                    .update_participant(im, contact, payload);
+            });
+    },
+
+    save_participant_passport: function(im, contact, passport_no) {
+        contact.extra.passport_origin = im.user.answers.state_passport_origin;
+        contact.extra.passport_no = passport_no;
+        return im.contacts
+            .save(contact)
+            .then(function() {
+                payload = {
+                    "full_name": contact.extra.full_name,
+                    "id_type": contact.extra.id_type,
+                    "id_no": contact.extra.passport_no,
+                    "passport_origin": contact.extra.passport_origin
+                };
+                return go.utils
+                    .update_participant(im, contact, payload);
+            });
+    },
+
+    save_participant_sa_id: function(im, contact, id) {
         contact.extra.sa_id = id;
         contact.extra.dob = go.utils.extract_id_dob(id);
         contact.extra.gender = go.utils.extract_id_gender(id);
         contact.extra.details_completed = "v1";
-        return im.contacts.save(contact);
+        return im.contacts
+            .save(contact)
+            .then(function() {
+                payload = {
+                    "full_name": contact.extra.full_name,
+                    "gender": contact.extra.gender,
+                    "id_type": contact.extra.id_type,
+                    "id_no": contact.extra.sa_id,
+                    "dob": contact.extra.dob
+                };
+                return go.utils
+                    .update_participant(im, contact, payload);
+            });
     },
 
     is_alpha_numeric_only: function(input) {

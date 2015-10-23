@@ -58,7 +58,8 @@ describe("emergingleaders app", function() {
                             sa_id: '5101025009086',
                             dob: '1951-01-02',
                             gender: 'male',
-                            details_completed: "v1"
+                            details_completed: "v1",
+                            // participant_id: 222
                         },
                         key: "contact_key_082222",
                         user_account: "contact_user_account"

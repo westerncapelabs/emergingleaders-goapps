@@ -114,7 +114,8 @@ return [
             'method': 'POST',
             'url': 'http://127.0.0.1:8000/api/v1/participants/',
             'data': {
-                'msisdn': '+082111'
+                'msisdn': '+082111',
+                'lang': 'af'
             },
         },
         'response': {
@@ -123,13 +124,102 @@ return [
                 "url": "http://localhost:8000/api/v1/participants/111/",
                 "id": 111,
                 "msisdn": "+082111",
-                "lang": null,
+                "lang": "af",
                 "full_name": null,
                 "gender": null,
                 "id_type": null,
                 "id_no": null,
                 "dob": null,
                 "passport_origin": null
+            }
+        }
+    },
+
+
+// PATCH PARTICIPANTS WITH ADDITIONAL DETAILS
+
+    // patch participant 111 - sa_id
+    {
+        "request": {
+            "method": "PATCH",
+            "url": "http://127.0.0.1:8000/api/v1/participants/111/",
+            "data": {
+                "full_name": "Jan Mopiso",
+                "gender": "male",
+                "id_type": "sa_id",
+                "id_no": "5002285000007",
+                "dob": "1950-02-28"
+            }
+        },
+        "response": {
+            "code": 200,
+            "data": {
+                "url": "http://localhost:8000/api/v1/participants/111/",
+                "id": 111,
+                "msisdn": "+082111",
+                "lang": "af",
+                "full_name": "Jan Mopiso",
+                "gender": "male",
+                "id_type": "sa_id",
+                "id_no": "5002285000007",
+                "dob": "1950-02-28",
+                "passport_origin": null
+            }
+        }
+    },
+
+    // patch participant 111 - passport
+    {
+        "request": {
+            "method": "PATCH",
+            "url": "http://127.0.0.1:8000/api/v1/participants/111/",
+            "data": {
+                "full_name": "Jan Mopiso",
+                "id_type": "passport",
+                "id_no": "AB1234",
+                "passport_origin": "ng"
+            }
+        },
+        "response": {
+            "code": 200,
+            "data": {
+                "url": "http://localhost:8000/api/v1/participants/111/",
+                "id": 111,
+                "msisdn": "+082111",
+                "lang": "af",
+                "full_name": "Jan Mopiso",
+                "gender": null,
+                "id_type": "passport",
+                "id_no": "AB1234",
+                "dob": null,
+                "passport_origin": "ng"
+            }
+        }
+    },
+
+    // patch participant 111 - dob & gender
+    {
+        "request": {
+            "method": "PATCH",
+            "url": "http://127.0.0.1:8000/api/v1/participants/111/",
+            "data": {
+                "dob": "1995-07-18",
+                "gender": "male"
+            }
+        },
+        "response": {
+            "code": 200,
+            "data": {
+                "url": "http://localhost:8000/api/v1/participants/111/",
+                "id": 111,
+                "msisdn": "+082111",
+                "lang": "af",
+                "full_name": "Jan Mopiso",
+                "gender": "male",
+                "id_type": "passport",
+                "id_no": "AB1234",
+                "dob": "1995-07-18",
+                "passport_origin": "ng"
             }
         }
     },
