@@ -236,7 +236,7 @@ describe("emergingleaders app", function() {
                         .run();
                 });
 
-                it("should tell them there's no hope if they ask for help", function() {
+                it("should offer choices on selecting help", function() {
                     return tester
                         .setup.user.addr('082222')
                         .inputs(
@@ -245,7 +245,65 @@ describe("emergingleaders app", function() {
                         )
                         .check.interaction({
                             state: 'state_help',
-                            reply: "Sorry, it's a lost cause."
+                            reply: [
+                                "You have reached the Emerging Leaders training registration line.",
+                                "1. Start from scratch",
+                                "2. Ok, register a training session",
+                                "3. Exit"
+                            ].join('\n')
+                        })
+                        .run();
+                });
+            });
+
+            describe("upon entering a choice state_help", function() {
+                it("should reset if chosen", function() {
+                    return tester
+                        .setup.user.addr('082222')
+                        .inputs(
+                            {session_event: 'new'}  // dial in
+                            , '3'  // state_returning_user - help
+                            , '1'  // state_help - reset
+                        )
+                        .check.user.properties({lang: 'en'})
+                        .check(function(api) {
+                            var contact = _.find(api.contacts.store, {
+                              msisdn: '+082222'
+                            });
+                            assert.equal(Object.keys(contact.extra).length, 0);
+                        })
+                        .check.interaction({
+                            state: 'state_language'
+                        })
+                        .run();
+                });
+
+                it("should continue if chosen", function() {
+                    return tester
+                        .setup.user.addr('082222')
+                        .inputs(
+                            {session_event: 'new'}  // dial in
+                            , '3'  // state_returning_user - help
+                            , '2'  // state_help - continue
+                        )
+                        .check.user.properties({lang: 'af'})
+                        .check.interaction({
+                            state: 'state_training_code'
+                        })
+                        .run();
+                });
+
+                it("should exit if chosen", function() {
+                    return tester
+                        .setup.user.addr('082222')
+                        .inputs(
+                            {session_event: 'new'}  // dial in
+                            , '3'  // state_returning_user - help
+                            , '3'  // state_help - exit
+                        )
+                        .check.interaction({
+                            state: 'state_abort',
+                            reply: 'Goodbye!'
                         })
                         .run();
                 });

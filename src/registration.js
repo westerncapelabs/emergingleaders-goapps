@@ -324,9 +324,26 @@ go.app = function() {
         });
 
         self.states.add('state_help', function(name) {
-            return new EndState(name, {
-                text: $("Sorry, it's a lost cause."),
-                next: 'state_start'
+            return new ChoiceState(name, {
+                question: "You have reached the Emerging Leaders training registration line.",
+                choices: [
+                    new Choice('reset', 'Start from scratch'),
+                    new Choice('continue', 'Ok, register a training session'),
+                    new Choice('exit', 'Exit'),
+                ],
+                next: function(choice) {
+                    if (choice.value == 'reset') {
+                        return go.utils
+                            .reset_contact(self.im, self.contact)
+                            .then(function() {
+                                return 'state_language';
+                            });
+                    } else if (choice.value == 'continue') {
+                        return 'state_training_code';
+                    } else {
+                        return 'state_abort';
+                    }
+                }
             });
         });
 
@@ -337,6 +354,12 @@ go.app = function() {
             });
         });
 
+        self.states.add('state_abort', function(name) {
+            return new EndState(name, {
+                text: "Goodbye!",
+                next: 'state_start'
+            });
+        });
     });
 
     return {
