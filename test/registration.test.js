@@ -20,10 +20,10 @@ describe("emergingleaders app", function() {
                     name: 'emergingleaders',
                     channel: '*120*8864*0000#',
                     metric_store: 'emergingleaders_test',  // _env at the end
-                    registration_api: {
-                        username: "test_user",
-                        api_key: "test_key",
-                        url: "http://127.0.0.1:8000/registration/"
+                    el_api: {
+                        username: "test_api_user",
+                        api_key: "test_api_key",
+                        base_url: "http://127.0.0.1:8000/api/v1/"
                     },
                     endpoints: {
                         "sms": {"delivery_class": "sms"}
@@ -251,6 +251,38 @@ describe("emergingleaders app", function() {
             });
 
             describe("upon training code entry", function() {
+                it("should loop back if the training code is invalid - not a number", function() {
+                    return tester
+                        .setup.user.addr('082111')
+                        .inputs(
+                            {session_event: 'new'}  // dial in
+                            , '3'  // state_language - afrikaans
+                            , 'abc'  // state_training_code - not numeric only
+                        )
+                        .check.interaction({
+                            state: 'state_training_code',
+                            reply: "Sorry, the training session code you entered does not exist. " +
+                                   "Please try again"
+                        })
+                        .run();
+                });
+
+                it("should loop back if the training code is invalid - no event", function() {
+                    return tester
+                        .setup.user.addr('082111')
+                        .inputs(
+                            {session_event: 'new'}  // dial in
+                            , '3'  // state_language - afrikaans
+                            , '999'  // state_training_code - event doesn't exist
+                        )
+                        .check.interaction({
+                            state: 'state_training_code',
+                            reply: "Sorry, the training session code you entered does not exist. " +
+                                   "Please try again"
+                        })
+                        .run();
+                });
+
                 it("should go to state_name if it is a new user", function() {
                     return tester
                         .setup.user.addr('082111')
