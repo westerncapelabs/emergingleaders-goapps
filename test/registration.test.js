@@ -17,8 +17,8 @@ describe("emergingleaders app", function() {
             tester
                 .setup.char_limit(160)
                 .setup.config.app({
-                    name: 'emergingleaders',
-                    channel: '*120*8864*0000#',
+                    name: 'emergingleaders_reg',
+                    channel: '*120*8864*0001#',
                     metric_store: 'emergingleaders_test',  // _env at the end
                     el_api: {
                         username: "test_api_user",

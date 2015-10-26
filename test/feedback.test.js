@@ -17,17 +17,18 @@ describe("emergingleaders app", function() {
             tester
                 .setup.char_limit(160)
                 .setup.config.app({
-                    name: 'emergingleaders',
-                    channel: '*120*8864*0000#',
+                    name: 'emergingleaders_feedback',
+                    channel: '*120*8864*0002#',
                     metric_store: 'emergingleaders_test',  // _env at the end
-                    feedback_api: {
-                        username: "test_user",
-                        api_key: "test_key",
-                        url: "http://127.0.0.1:8000/feedback/"
+                    el_api: {
+                        username: "test_api_user",
+                        api_key: "test_api_key",
+                        base_url: "http://127.0.0.1:8000/api/v1/"
                     },
                     endpoints: {
                         "sms": {"delivery_class": "sms"}
                     },
+                    testing_today: '2015-03-03T15:08:08.000',
                 })
                 .setup(function(api) {
                     fixtures().forEach(function(d) {
@@ -271,7 +272,7 @@ describe("emergingleaders app", function() {
             });
 
             describe("upon answering q5", function() {
-                it("should thank them and exit", function() {
+                it("should thank them, update extras, and exit", function() {
                     return tester
                         .setup.user.addr('082222')
                         .inputs(
@@ -285,6 +286,12 @@ describe("emergingleaders app", function() {
                         .check.interaction({
                             state: 'state_end',
                             reply: "Thank you for your feedback!"
+                        })
+                        .check(function(api) {
+                            var contact = _.find(api.contacts.store, {
+                              msisdn: '+082222'
+                            });
+                            assert.equal(contact.extra.last_feedback_code, 2);
                         })
                         .check.reply.ends_session()
                         .run();

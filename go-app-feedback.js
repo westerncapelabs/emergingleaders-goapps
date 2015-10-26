@@ -349,8 +349,14 @@ go.utils = {
         return moment(date, format, true).isValid();
     },
 
-    post_feedback: function(im, question_text, answer_text, answer_value) {
-        return Q();
+    post_feedback: function(im, contact, q_id, q_text, answer_text, answer_value) {
+        var payload = {"event": "/api/v1/events/" + contact.extra.last_training_code + "/",
+                       "participant": "/api/v1/participants/" + contact.extra.participant_id + "/",
+                       "question_id": q_id,
+                       "question_text": q_text,
+                       "answer_text": answer_text,
+                       "answer_value": answer_value};
+        return go.utils.el_api_call("feedback/", "post", {}, payload, im);
     },
 
     opt_out: function(im, contact) {
@@ -451,7 +457,8 @@ go.app = function() {
                 ],
                 next: function(choice) {
                     return go.utils
-                        .post_feedback(self.im, q_id, q_text_en, choice.label, choice.value)
+                        .post_feedback(self.im, self.contact, q_id, q_text_en,
+                                       choice.label, choice.value)
                         .then(function() {
                             return 'state_q2';
                         });
@@ -471,9 +478,10 @@ go.app = function() {
                         return $(error_text_en);
                     }
                 },
-                next: function(choice) {
+                next: function(content) {
                     return go.utils
-                        .post_feedback(self.im, q_id, q_text_en, choice.label, choice.value)
+                        .post_feedback(self.im, self.contact, q_id, q_text_en,
+                                       content, 'freetext_user_entry')
                         .then(function() {
                             return 'state_q3';
                         });
@@ -497,7 +505,8 @@ go.app = function() {
                 ],
                 next: function(choice) {
                     return go.utils
-                        .post_feedback(self.im, q_id, q_text_en, choice.label, choice.value)
+                        .post_feedback(self.im, self.contact, q_id, q_text_en,
+                                       choice.label, choice.value)
                         .then(function() {
                             return 'state_q4';
                         });
@@ -518,7 +527,8 @@ go.app = function() {
                 ],
                 next: function(choice) {
                     return go.utils
-                        .post_feedback(self.im, q_id, q_text_en, choice.label, choice.value)
+                        .post_feedback(self.im, self.contact, q_id, q_text_en,
+                                       choice.label, choice.value)
                         .then(function() {
                             return 'state_q5';
                         });
@@ -538,8 +548,11 @@ go.app = function() {
                     new Choice('h_more', $("More than 2 hours")),
                 ],
                 next: function(choice) {
+                    self.contact.extra.last_feedback_code = self.contact.extra.last_training_code;
                     return Q.all([
-                        go.utils.post_feedback(self.im, q_id, q_text_en, choice.label, choice.value),
+                        self.im.contacts.save(self.contact),
+                        go.utils.post_feedback(self.im, self.contact, q_id, q_text_en,
+                                               choice.label, choice.value),
                         self.im.outbound.send({
                             to: self.contact,
                             endpoint: 'sms',
@@ -547,6 +560,7 @@ go.app = function() {
                             content: $("Testify! by sending an sms reply with your success story " +
                                        "to this number.")
                         })
+
                     ])
                     .then(function() {
                         return 'state_end';
