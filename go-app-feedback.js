@@ -540,7 +540,7 @@ go.app = function() {
                     return go.utils
                         .post_feedback(self.im, q_id, q_text_en, choice.label, choice.value)
                         .then(function() {
-                            return 'state_q6';
+                            return 'state_end';
                         });
                 }
             });

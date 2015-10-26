@@ -270,6 +270,27 @@ describe("emergingleaders app", function() {
                 });
             });
 
+            describe("upon answering q5", function() {
+                it("should thank them and exit", function() {
+                    return tester
+                        .setup.user.addr('082222')
+                        .inputs(
+                            {session_event: 'new'}  // dial in
+                            , '1'  // state_q1 - great_change
+                            , '44'  // state_q2
+                            , '3'  // state_q3 - proactive
+                            , '1'  // state_q4 - community project
+                            , '2'  // state_q5 - 30 min - 1 hour
+                        )
+                        .check.interaction({
+                            state: 'state_end',
+                            reply: "Thank you for your feedback!"
+                        })
+                        .check.reply.ends_session()
+                        .run();
+                });
+            });
+
 
         });
 
