@@ -221,6 +221,55 @@ describe("emergingleaders app", function() {
                 });
             });
 
+            describe("upon answering q3", function() {
+                it("should go to q4", function() {
+                    return tester
+                        .setup.user.addr('082222')
+                        .inputs(
+                            {session_event: 'new'}  // dial in
+                            , '1'  // state_q1 - great_change
+                            , '44'  // state_q2
+                            , '3'  // state_q3 - proactive
+                        )
+                        .check.interaction({
+                            state: 'state_q4',
+                            reply: [
+                                "What project have you decided to start when you leave the training?",
+                                "1. Community project",
+                                "2. Income generating project",
+                                "3. Both income & community",
+                                "4. None",
+                            ].join("\n")
+                        })
+                        .run();
+                });
+            });
+
+            describe("upon answering q4", function() {
+                it("should go to q5", function() {
+                    return tester
+                        .setup.user.addr('082222')
+                        .inputs(
+                            {session_event: 'new'}  // dial in
+                            , '1'  // state_q1 - great_change
+                            , '44'  // state_q2
+                            , '3'  // state_q3 - proactive
+                            , '1'  // state_q4 - community project
+                        )
+                        .check.interaction({
+                            state: 'state_q5',
+                            reply: [
+                                "How long did you travel to get to the training?",
+                                "1. Less than 30 min",
+                                "2. 30 min - 1 hour",
+                                "3. 1 hour - 2 hours",
+                                "4. More than 2 hours",
+                            ].join("\n")
+                        })
+                        .run();
+                });
+            });
+
 
         });
 

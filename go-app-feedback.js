@@ -504,6 +504,48 @@ go.app = function() {
             });
         });
 
+        self.states.add('state_q4', function(name) {
+            var q_id = 4;
+            var q_text_en = "What project have you decided to start when you leave the training?";
+            return new ChoiceState(name, {
+                question: $(q_text_en),
+                choices: [
+                    new Choice('community', $("Community project")),
+                    new Choice('income', $("Income generating project")),
+                    new Choice('income_and_community', $("Both income & community")),
+                    new Choice('none', $("None")),
+                ],
+                next: function(choice) {
+                    return go.utils
+                        .post_feedback(self.im, q_id, q_text_en, choice.label, choice.value)
+                        .then(function() {
+                            return 'state_q5';
+                        });
+                }
+            });
+        });
+
+        self.states.add('state_q5', function(name) {
+            var q_id = 5;
+            var q_text_en = "How long did you travel to get to the training?";
+            return new ChoiceState(name, {
+                question: $(q_text_en),
+                choices: [
+                    new Choice('h_half', $("Less than 30 min")),
+                    new Choice('h_one', $("30 min - 1 hour")),
+                    new Choice('h_two', $("1 hour - 2 hours")),
+                    new Choice('h_more', $("More than 2 hours")),
+                ],
+                next: function(choice) {
+                    return go.utils
+                        .post_feedback(self.im, q_id, q_text_en, choice.label, choice.value)
+                        .then(function() {
+                            return 'state_q6';
+                        });
+                }
+            });
+        });
+
 
     // END STATES
 
