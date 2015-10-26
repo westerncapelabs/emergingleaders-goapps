@@ -389,6 +389,7 @@ go.app = function() {
     var Choice = vumigo.states.Choice;
     var ChoiceState = vumigo.states.ChoiceState;
     var EndState = vumigo.states.EndState;
+    var FreeText = vumigo.states.FreeText;
 
 
     var GoApp = App.extend(function(self) {
@@ -436,27 +437,6 @@ go.app = function() {
 
     // QUESTION STATES
 
-        self.states.add('state_q2', function(name) {
-            var q_id = 2;
-            var q_text_en = "How much do you feel the training will change your life?";
-            return new ChoiceState(name, {
-                question: $(q_text_en),
-                choices: [
-                    new Choice('great_change', $("Great change")),
-                    new Choice('medium_change', $("Medium change")),
-                    new Choice('little_change', $("Little change")),
-                    new Choice('no_change', $("No change")),
-                ],
-                next: function(choice) {
-                    return go.utils
-                        .post_feedback(self.im, q_id, q_text_en, choice.label, choice.value)
-                        .then(function() {
-                            return 'state_q3';
-                        });
-                }
-            });
-        });
-
         self.states.add('state_q1', function(name) {
             var q_id = 1;
             var q_text_en = "How much do you feel the training will change your life?";
@@ -473,6 +453,52 @@ go.app = function() {
                         .post_feedback(self.im, q_id, q_text_en, choice.label, choice.value)
                         .then(function() {
                             return 'state_q2';
+                        });
+                }
+            });
+        });
+
+        self.states.add('state_q2', function(name) {
+            var q_id = 2;
+            var q_text_en = "How many people have you shared the training with?";
+            var error_text_en = "Sorry, that is not a valid number. Please enter the number " +
+                                "of people you've shared the training with:";
+            return new FreeText(name, {
+                question: $(q_text_en),
+                check: function(content) {
+                    if (!go.utils.check_valid_number(content)) {
+                        return $(error_text_en);
+                    }
+                },
+                next: function(choice) {
+                    return go.utils
+                        .post_feedback(self.im, q_id, q_text_en, choice.label, choice.value)
+                        .then(function() {
+                            return 'state_q3';
+                        });
+                }
+            });
+        });
+
+        self.states.add('state_q3', function(name) {
+            var q_id = 3;
+            var q_text_en = "Favourite mindset?";
+            return new ChoiceState(name, {
+                question: $(q_text_en),
+                choices: [
+                    new Choice('lift_head', $("Lift up head")),
+                    new Choice('see_self_leader', $("See self as leader")),
+                    new Choice('proactive', $("Proactive")),
+                    new Choice('take_responsibility', $("See & take responsibility")),
+                    new Choice('change_something', $("Change something")),
+                    new Choice('focus', $("Focus")),
+                    new Choice('appreciative_thinking', $("Appreciative thinking"))
+                ],
+                next: function(choice) {
+                    return go.utils
+                        .post_feedback(self.im, q_id, q_text_en, choice.label, choice.value)
+                        .then(function() {
+                            return 'state_q4';
                         });
                 }
             });

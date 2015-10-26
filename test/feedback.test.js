@@ -163,6 +163,64 @@ describe("emergingleaders app", function() {
                 });
             });
 
+            describe("upon answering q1", function() {
+                it("should go to q2", function() {
+                    return tester
+                        .setup.user.addr('082222')
+                        .inputs(
+                            {session_event: 'new'}  // dial in
+                            , '1'  // state_q1 - great_change
+                        )
+                        .check.interaction({
+                            state: 'state_q2',
+                            reply: "How many people have you shared the training with?"
+                        })
+                        .run();
+                });
+            });
+
+            describe("upon answering q2", function() {
+                it("should go to q3 if the number is valid", function() {
+                    return tester
+                        .setup.user.addr('082222')
+                        .inputs(
+                            {session_event: 'new'}  // dial in
+                            , '1'  // state_q1 - great_change
+                            , '44'  // state_q2
+                        )
+                        .check.interaction({
+                            state: 'state_q3',
+                            reply: [
+                                "Favourite mindset?",
+                                "1. Lift up head",
+                                "2. See self as leader",
+                                "3. Proactive",
+                                "4. See & take responsibility",
+                                "5. Change something",
+                                "6. Focus",
+                                "7. Appreciative thinking"
+                            ].join("\n")
+                        })
+                        .run();
+                });
+
+                it("should loop back if the number is invalid", function() {
+                    return tester
+                        .setup.user.addr('082222')
+                        .inputs(
+                            {session_event: 'new'}  // dial in
+                            , '1'  // state_q1 - great_change
+                            , 'blah'  // state_q2
+                        )
+                        .check.interaction({
+                            state: 'state_q2',
+                            reply: "Sorry, that is not a valid number. Please enter the number " +
+                                   "of people you've shared the training with:"
+                        })
+                        .run();
+                });
+            });
+
 
         });
 
