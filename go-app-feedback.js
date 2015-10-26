@@ -385,6 +385,7 @@ go.utils = {
 go.app = function() {
     var vumigo = require('vumigo_v02');
     var MetricsHelper = require('go-jsbox-metrics-helper');
+    var Q = require('q');
     var App = vumigo.App;
     var Choice = vumigo.states.Choice;
     var ChoiceState = vumigo.states.ChoiceState;
@@ -537,11 +538,19 @@ go.app = function() {
                     new Choice('h_more', $("More than 2 hours")),
                 ],
                 next: function(choice) {
-                    return go.utils
-                        .post_feedback(self.im, q_id, q_text_en, choice.label, choice.value)
-                        .then(function() {
-                            return 'state_end';
-                        });
+                    return Q.all([
+                        go.utils.post_feedback(self.im, q_id, q_text_en, choice.label, choice.value),
+                        self.im.outbound.send({
+                            to: self.contact,
+                            endpoint: 'sms',
+                            lang: self.contact.extra.lang,
+                            content: $("Testify! by sending an sms reply with your success story " +
+                                       "to this number.")
+                        })
+                    ])
+                    .then(function() {
+                        return 'state_end';
+                    });
                 }
             });
         });

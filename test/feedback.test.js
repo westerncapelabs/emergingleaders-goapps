@@ -289,6 +289,32 @@ describe("emergingleaders app", function() {
                         .check.reply.ends_session()
                         .run();
                 });
+
+                it("should send an sms", function() {
+                   return tester
+                        .setup.user.addr('082222')
+                        .inputs(
+                            {session_event: 'new'}  // dial in
+                            , '1'  // state_q1 - great_change
+                            , '44'  // state_q2
+                            , '3'  // state_q3 - proactive
+                            , '1'  // state_q4 - community project
+                            , '2'  // state_q5 - 30 min - 1 hour
+                        )
+                        .check(function(api) {
+                            var smses = _.where(api.outbound.store, {
+                                endpoint: 'sms'
+                            });
+                            var sms = smses[0];
+                            assert.equal(smses.length,1);
+                            assert.equal(sms.content,
+                                "Testify! by sending an sms reply with your success story " +
+                                "to this number."
+                            );
+                            assert.equal(sms.to_addr,'+082222');
+                        })
+                        .run();
+                    });
             });
 
 
