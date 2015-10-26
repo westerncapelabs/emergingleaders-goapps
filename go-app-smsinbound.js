@@ -349,6 +349,10 @@ go.utils = {
         return moment(date, format, true).isValid();
     },
 
+    post_feedback: function(im, question_text, answer_text, answer_value) {
+        return Q();
+    },
+
     opt_out: function(im, contact) {
         contact.extra.optout_last_attempt = go.utils
             .get_today(im.config).format('YYYY-MM-DD hh:mm:ss.SSS');

@@ -4,7 +4,6 @@ go.app = function() {
     var App = vumigo.App;
     var Choice = vumigo.states.Choice;
     var ChoiceState = vumigo.states.ChoiceState;
-    var FreeText = vumigo.states.FreeText;
     var EndState = vumigo.states.EndState;
 
 
@@ -35,41 +34,83 @@ go.app = function() {
     // ROUTING STATES
 
         self.states.add('state_start', function(name) {
-            return go.utils
-                .set_language(self.im, self.contact)
-                .then(function() {
-                    return self.states.create('state_language');
-                });
+            var tr_code = self.contact.extra.last_training_code;
+            if (tr_code === undefined) {
+                return self.states.create('state_not_registered');
+            } else if (tr_code === self.contact.extra.last_feedback_code) {
+                return self.states.create('state_feedback_given');
+            } else {
+                return go.utils
+                    .set_language(self.im, self.contact)
+                    .then(function() {
+                        return self.states.create('state_q1');
+                    });
+            }
+
         });
 
 
-    // CONTENT STATES
+    // QUESTION STATES
 
-        self.states.add('state_language', function(name) {
+        self.states.add('state_q2', function(name) {
+            var q_id = 2;
+            var q_text_en = "How much do you feel the training will change your life?";
             return new ChoiceState(name, {
-                question: $("Choose your preferred language:"),
+                question: $(q_text_en),
                 choices: [
-                    new Choice('en', $("English")),
-                    new Choice('zu', $("Zulu")),
-                    new Choice('xh', $("Xhosa")),
-                    new Choice('af', $("Afrikaans")),
+                    new Choice('great_change', $("Great change")),
+                    new Choice('medium_change', $("Medium change")),
+                    new Choice('little_change', $("Little change")),
+                    new Choice('no_change', $("No change")),
                 ],
                 next: function(choice) {
                     return go.utils
-                        .save_set_language(self.im, self.contact, choice.value)
+                        .post_feedback(self.im, q_id, q_text_en, choice.label, choice.value)
                         .then(function() {
-                            return 'state_name';
+                            return 'state_q3';
                         });
                 }
             });
         });
 
-        self.states.add('state_name', function(name) {
-            return new FreeText(name, {
-                question: "What is your full name?",
+        self.states.add('state_q1', function(name) {
+            var q_id = 1;
+            var q_text_en = "How much do you feel the training will change your life?";
+            return new ChoiceState(name, {
+                question: $(q_text_en),
+                choices: [
+                    new Choice('great_change', $("Great change")),
+                    new Choice('medium_change', $("Medium change")),
+                    new Choice('little_change', $("Little change")),
+                    new Choice('no_change', $("No change")),
+                ],
                 next: function(choice) {
-                    return 'state_end';
+                    return go.utils
+                        .post_feedback(self.im, q_id, q_text_en, choice.label, choice.value)
+                        .then(function() {
+                            return 'state_q2';
+                        });
                 }
+            });
+        });
+
+
+    // END STATES
+
+        self.states.add('state_not_registered', function(name) {
+            return new EndState(name, {
+                text: $("You have reached Emerging Leaders Feedback, but you don't " +
+                        "have a valid training code stored. Please contact your " +
+                        "trainer for help."),
+                next: 'state_start'
+            });
+        });
+
+        self.states.add('state_feedback_given', function(name) {
+            return new EndState(name, {
+                text: $("You have already provided feedback for your last training " +
+                        "session. Thank you!"),
+                next: 'state_start'
             });
         });
 

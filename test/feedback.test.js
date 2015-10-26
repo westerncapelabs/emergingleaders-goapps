@@ -46,6 +46,46 @@ describe("emergingleaders app", function() {
                         user_account: "contact_user_account"
                     });
                 })
+                .setup(function(api) {
+                    // returning user all details completed
+                    api.contacts.add({
+                        msisdn: '+082222',
+                        extra: {
+                            lang: "af",
+                            full_name: "Pete Pompey",
+                            id_type: 'sa_id',
+                            sa_id: '5101025009086',
+                            dob: '1951-01-02',
+                            gender: 'male',
+                            details_completed: "v1",
+                            participant_id: "222",
+                            last_training_code: "2",
+                            last_feedback_code: "1"
+                        },
+                        key: "contact_key_082222",
+                        user_account: "contact_user_account"
+                    });
+                })
+                .setup(function(api) {
+                    // returning user all details completed
+                    api.contacts.add({
+                        msisdn: '+082333',
+                        extra: {
+                            lang: "af",
+                            full_name: "Dude Perfect",
+                            id_type: 'sa_id',
+                            sa_id: '5101025009086',
+                            dob: '1951-01-02',
+                            gender: 'male',
+                            details_completed: "v1",
+                            participant_id: "333",
+                            last_training_code: "2",
+                            last_feedback_code: "2"
+                        },
+                        key: "contact_key_082333",
+                        user_account: "contact_user_account"
+                    });
+                })
             ;
         });
 
@@ -55,28 +95,9 @@ describe("emergingleaders app", function() {
         describe("Feedback testing", function() {
 
             describe("starting session", function() {
-                it("should ask for their language", function() {
-                    return tester
-                        .setup.user.addr('082111')
-                        .inputs(
-                            {session_event: 'new'}  // dial in
-                        )
-                        .check.interaction({
-                            state: 'state_language',
-                            reply: [
-                                "Choose your preferred language:",
-                                "1. English",
-                                "2. Zulu",
-                                "3. Xhosa",
-                                "4. Afrikaans"
-                            ].join('\n')
-                        })
-                        .run();
-                });
-
                 it("should fire metrics", function() {
                     return tester
-                        .setup.user.addr('082111')
+                        .setup.user.addr('082222')
                         .inputs(
                             {session_event: 'new'}  // dial in
                         )
@@ -90,58 +111,58 @@ describe("emergingleaders app", function() {
                         })
                         .run();
                 });
-            });
 
-            describe("upon language selection", function() {
-                it("should ask for their name", function() {
+                it("should ask q1 if contact has training code, hasn't completed feedback " +
+                   "for that code", function() {
                     return tester
-                        .setup.user.addr('082111')
+                        .setup.user.addr('082222')
                         .inputs(
                             {session_event: 'new'}  // dial in
-                            , '1'  // state_language - english
                         )
                         .check.interaction({
-                            state: 'state_name',
-                            reply: "What is your full name?"
+                            state: 'state_q1',
+                            reply: [
+                                "How much do you feel the training will change your life?",
+                                "1. Great change",
+                                "2. Medium change",
+                                "3. Little change",
+                                "4. No change"
+                            ].join('\n')
                         })
-                        .run();
-                });
-
-                it("should set their language", function() {
-                    return tester
-                        .setup.user.addr('082111')
-                        .inputs(
-                            {session_event: 'new'}  // dial in
-                            , '4'  // state_language - afrikaans
-                        )
                         .check.user.properties({lang: 'af'})
-                        .check(function(api) {
-                            var contact = _.find(api.contacts.store, {
-                                msisdn: '+082111'
-                            });
-                            assert.equal(contact.extra.lang, 'af');
+                        .run();
+                });
+
+                it("should show them away if they don't have a training code saved", function() {
+                    return tester
+                        .setup.user.addr('082111')
+                        .inputs(
+                            {session_event: 'new'}  // dial in
+                        )
+                        .check.interaction({
+                            state: 'state_not_registered',
+                            reply: "You have reached Emerging Leaders Feedback, but you don't " +
+                                   "have a valid training code stored. Please contact your " +
+                                   "trainer for help."
+                        })
+                        .run();
+                });
+
+                it("should show them away if they've already provided feedback", function() {
+                    return tester
+                        .setup.user.addr('082333')
+                        .inputs(
+                            {session_event: 'new'}  // dial in
+                        )
+                        .check.interaction({
+                            state: 'state_feedback_given',
+                            reply: "You have already provided feedback for your last training " +
+                                   "session. Thank you!"
                         })
                         .run();
                 });
             });
 
-            describe("upon language selection", function() {
-                it("should go to state_end", function() {
-                    return tester
-                        .setup.user.addr('082111')
-                        .inputs(
-                            {session_event: 'new'}  // dial in
-                            , '1'  // state_language - english
-                            , 'John'  // state_name
-                        )
-                        .check.interaction({
-                            state: 'state_end',
-                            reply: "Thank you for your feedback!"
-                        })
-                        .check.reply.ends_session()
-                        .run();
-                });
-            });
 
         });
 
