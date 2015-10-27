@@ -19,9 +19,17 @@ describe("emergingleaders app", function() {
             tester
                 .setup.char_limit(160)
                 .setup.config.app({
-                    name: 'smsinbound',
-                    testing_today: '2015-04-03 06:07:08.999',
+                    name: 'emergingleaders_smsinbound',
+                    testing_today: '2015-03-03T15:08:08.000',
                     metric_store: 'emergingleaders_test',  // _env at the end
+                    el_api: {
+                        username: "test_api_user",
+                        api_key: "test_api_key",
+                        base_url: "http://127.0.0.1:8000/api/v1/"
+                    },
+                    sms_story_msg: "Thanks for providing feedback on your training. If " +
+                                   "you have a story about how it's changed your life " +
+                                   "in some way please reply to this SMS to tell us!",
                 })
                 .setup(function(api) {
                     api.resources.add(new DummyOptoutResource());
@@ -32,8 +40,27 @@ describe("emergingleaders app", function() {
                 })
                 .setup(function(api) {
                     fixtures().forEach(function(d) {
-                        d.repeatable = true;
                         api.http.fixtures.add(d);
+                    });
+                })
+                .setup(function(api) {
+                    // returning user all details completed
+                    api.contacts.add({
+                        msisdn: '+082222',
+                        extra: {
+                            lang: "af",
+                            full_name: "Pete Pompey",
+                            id_type: 'sa_id',
+                            sa_id: '5101025009086',
+                            dob: '1951-01-02',
+                            gender: 'male',
+                            details_completed: "v1",
+                            participant_id: "222",
+                            last_training_code: "2",
+                            last_feedback_code: "2"
+                        },
+                        key: "contact_key_082222",
+                        user_account: "contact_user_account"
                     });
                 })
                 .setup(function(api) {
@@ -74,7 +101,7 @@ describe("emergingleaders app", function() {
                         var contact = _.find(api.contacts.store, {
                                 msisdn: '+064991'
                             });
-                        assert.equal(contact.extra.optout_last_attempt, '2015-04-03 06:07:08.999');
+                        assert.equal(contact.extra.optout_last_attempt, '2015-03-03 03:08:08.000');
                         assert.equal(contact.extra.optin_last_attempt, undefined);
                     })
                     // check metrics
@@ -112,7 +139,7 @@ describe("emergingleaders app", function() {
                         var contact = _.find(api.contacts.store, {
                                 msisdn: '+064991'
                             });
-                        assert.equal(contact.extra.optout_last_attempt, '2015-04-03 06:07:08.999');
+                        assert.equal(contact.extra.optout_last_attempt, '2015-03-03 03:08:08.000');
                         assert.equal(contact.extra.optin_last_attempt, undefined);
                     })
                     // check metrics
@@ -151,7 +178,7 @@ describe("emergingleaders app", function() {
                                 msisdn: '+064999'
                             });
                         assert.equal(contact.extra.optout_last_attempt, '2015-01-01 01:01:01.111');
-                        assert.equal(contact.extra.optin_last_attempt, '2015-04-03 06:07:08.999');
+                        assert.equal(contact.extra.optin_last_attempt, '2015-03-03 03:08:08.000');
                     })
                     // check metrics
                     .check(function(api) {
@@ -172,23 +199,16 @@ describe("emergingleaders app", function() {
         });
 
         describe("when the user sends a different message", function() {
-            it("should tell them how to opt out", function() {
+            it("should save their feedback as a story", function() {
                 return tester
-                    .setup.user.addr('064991')
-                    .inputs('lhr')
+                    .setup.user.addr('082222')
+                    .inputs('I made everybody in my community rich!')
                     // check navigation
                     .check.interaction({
-                        state: 'state_unrecognised',
+                        state: 'state_feedback_story',
                         reply:
-                            'We do not recognise the message you sent us. Reply STOP to unsubscribe or START to opt in.'
-                    })
-                    // check extras
-                    .check(function(api) {
-                        var contact = _.find(api.contacts.store, {
-                                msisdn: '+064991'
-                            });
-                        assert.equal(contact.extra.optout_last_attempt, undefined);
-                        assert.equal(contact.extra.optin_last_attempt, undefined);
+                            "Thank you for sharing your story! You can send in more stories by " +
+                            "replying to this sms."
                     })
                     // check metrics
                     .check(function(api) {
@@ -196,9 +216,10 @@ describe("emergingleaders app", function() {
                         assert.equal(Object.keys(metrics).length, 4);
                         assert.deepEqual(metrics['total.sms.unique_users'].values, [1]);
                         assert.deepEqual(metrics['total.sms.unique_users.transient'].values, [1]);
-                        assert.deepEqual(metrics['total.unrecognised_sms'].values, [1]);
-                        assert.deepEqual(metrics['total.unrecognised_sms.transient'].values, [1]);
+                        assert.deepEqual(metrics['total.feedback_stories'].values, [1]);
+                        assert.deepEqual(metrics['total.feedback_stories.transient'].values, [1]);
                     })
+                    // check they didn't get opted out
                     .check(function(api) {
                         var optout_store = api.resources.resources.optout.optout_store;
                         assert.deepEqual(optout_store.length, 1);

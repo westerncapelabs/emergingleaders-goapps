@@ -17,8 +17,8 @@ describe("emergingleaders app", function() {
             tester
                 .setup.char_limit(160)
                 .setup.config.app({
-                    name: 'emergingleaders',
-                    channel: '*120*8864*0000#',
+                    name: 'emergingleaders_reg',
+                    channel: '*120*8864*0001#',
                     metric_store: 'emergingleaders_test',  // _env at the end
                     el_api: {
                         username: "test_api_user",
@@ -59,7 +59,9 @@ describe("emergingleaders app", function() {
                             dob: '1951-01-02',
                             gender: 'male',
                             details_completed: "v1",
-                            // participant_id: 222
+                            participant_id: "222",
+                            last_training_code: "2",
+                            last_feedback_code: "2"
                         },
                         key: "contact_key_082222",
                         user_account: "contact_user_account"
@@ -354,6 +356,15 @@ describe("emergingleaders app", function() {
                             state: 'state_name',
                             reply: "Please enter your full name"
                         })
+                        .check(function(api) {
+                            var contact = _.find(api.contacts.store, {
+                              msisdn: '+082111'
+                            });
+                            assert.equal(Object.keys(contact.extra).length, 3);
+                            assert.equal(contact.extra.last_training_code, '111');
+                            assert.equal(contact.extra.participant_id, '111');
+                            assert.equal(contact.extra.lang, 'af');
+                        })
                         .run();
                 });
 
@@ -368,6 +379,22 @@ describe("emergingleaders app", function() {
                         .check.interaction({
                             state: 'state_end',
                             reply: "Thank you for registering your training session!"
+                        })
+                        .check(function(api) {
+                            var contact = _.find(api.contacts.store, {
+                              msisdn: '+082222'
+                            });
+                            assert.equal(Object.keys(contact.extra).length, 10);
+                            assert.equal(contact.extra.last_training_code, '222');
+                            assert.equal(contact.extra.last_feedback_code, '2');
+                            assert.equal(contact.extra.participant_id, '222');
+                            assert.equal(contact.extra.full_name, 'Pete Pompey');
+                            assert.equal(contact.extra.id_type, 'sa_id');
+                            assert.equal(contact.extra.sa_id, '5101025009086');
+                            assert.equal(contact.extra.dob, '1951-01-02');
+                            assert.equal(contact.extra.gender, 'male');
+                            assert.equal(contact.extra.lang, 'af');
+                            assert.equal(contact.extra.details_completed, 'v1');
                         })
                         .check.reply.ends_session()
                         .run();

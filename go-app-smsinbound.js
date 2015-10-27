@@ -349,6 +349,16 @@ go.utils = {
         return moment(date, format, true).isValid();
     },
 
+    post_feedback: function(im, contact, q_id, q_text, answer_text, answer_value) {
+        var payload = {"event": "/api/v1/events/" + contact.extra.last_training_code + "/",
+                       "participant": "/api/v1/participants/" + contact.extra.participant_id + "/",
+                       "question_id": q_id,
+                       "question_text": q_text,
+                       "answer_text": answer_text,
+                       "answer_value": answer_value};
+        return go.utils.el_api_call("feedback/", "post", {}, payload, im);
+    },
+
     opt_out: function(im, contact) {
         contact.extra.optout_last_attempt = go.utils
             .get_today(im.config).format('YYYY-MM-DD hh:mm:ss.SSS');
@@ -418,10 +428,10 @@ go.app = function() {
                 // Total opt-ins
                 .add.total_state_actions(
                     {
-                        state: 'state_unrecognised',
+                        state: 'state_feedback_story',
                         action: 'enter'
                     },
-                    'total.unrecognised_sms'
+                    'total.feedback_stories'
                 );
 
             // Load self.contact
@@ -443,7 +453,7 @@ go.app = function() {
                 case "START":
                     return self.states.create("state_opt_in_enter");
                 default:
-                    return self.states.create("state_unrecognised");
+                    return self.states.create("state_feedback_story_enter");
             }
         });
 
@@ -482,10 +492,21 @@ go.app = function() {
         });
 
 
-    // UNRECOGNISED
-        self.states.add('state_unrecognised', function(name) {
+    // FEEDBACK STORY
+        self.states.add('state_feedback_story_enter', function(name) {
+            return go.utils
+                .post_feedback(self.im, self.contact, 99, self.im.config.sms_story_msg,
+                               self.im.msg.content, 'sms_user_entry')
+                .then(function() {
+                    return self.states.create('state_feedback_story');
+                });
+        });
+
+
+        self.states.add('state_feedback_story', function(name) {
             return new EndState(name, {
-                text: $('We do not recognise the message you sent us. Reply STOP to unsubscribe or START to opt in.'),
+                text: $("Thank you for sharing your story! You can send in more stories by " +
+                        "replying to this sms."),
                 next: 'state_start'
             });
         });
