@@ -428,10 +428,10 @@ go.app = function() {
                 // Total opt-ins
                 .add.total_state_actions(
                     {
-                        state: 'state_unrecognised',
+                        state: 'state_feedback_story',
                         action: 'enter'
                     },
-                    'total.unrecognised_sms'
+                    'total.feedback_stories'
                 );
 
             // Load self.contact
@@ -453,7 +453,7 @@ go.app = function() {
                 case "START":
                     return self.states.create("state_opt_in_enter");
                 default:
-                    return self.states.create("state_unrecognised");
+                    return self.states.create("state_feedback_story_enter");
             }
         });
 
@@ -492,10 +492,21 @@ go.app = function() {
         });
 
 
-    // UNRECOGNISED
-        self.states.add('state_unrecognised', function(name) {
+    // FEEDBACK STORY
+        self.states.add('state_feedback_story_enter', function(name) {
+            return go.utils
+                .post_feedback(self.im, self.contact, 99, "SMS Prompt User Story",
+                               self.im.msg.content, 'sms_user_entry')
+                .then(function() {
+                    return self.states.create('state_feedback_story');
+                });
+        });
+
+
+        self.states.add('state_feedback_story', function(name) {
             return new EndState(name, {
-                text: $('We do not recognise the message you sent us. Reply STOP to unsubscribe or START to opt in.'),
+                text: $("Thank you for sharing your story! You can send in more stories by " +
+                        "replying to this sms."),
                 next: 'state_start'
             });
         });

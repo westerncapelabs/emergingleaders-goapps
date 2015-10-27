@@ -409,5 +409,32 @@ return [
         }
     },
 
+    // post feedback q99 - feedback story sms
+    {
+        "request": {
+            "method": "POST",
+            "url": "http://127.0.0.1:8000/api/v1/feedback/",
+            "data": {
+                "event": "/api/v1/events/2/",
+                "participant": "/api/v1/participants/222/",
+                "question_id": 99,
+                "question_text": "SMS Prompt User Story",
+                "answer_text": "I made everybody in my community rich!",
+                "answer_value": "sms_user_entry"
+            }
+        },
+        "response": {
+            "code": 201,
+            "data": {
+                "event": "/api/v1/events/2/",
+                "participant": "/api/v1/participants/222/",
+                "question_id": 99,
+                "question_text": "SMS Prompt User Story",
+                "answer_text": "I made everybody in my community rich!",
+                "answer_value": "sms_user_entry"
+            }
+        }
+    },
+
 ];
 };
