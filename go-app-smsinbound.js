@@ -495,7 +495,7 @@ go.app = function() {
     // FEEDBACK STORY
         self.states.add('state_feedback_story_enter', function(name) {
             return go.utils
-                .post_feedback(self.im, self.contact, 99, "SMS Prompt User Story",
+                .post_feedback(self.im, self.contact, 99, self.im.config.sms_story_msg,
                                self.im.msg.content, 'sms_user_entry')
                 .then(function() {
                     return self.states.create('state_feedback_story');

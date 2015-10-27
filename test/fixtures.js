@@ -418,7 +418,9 @@ return [
                 "event": "/api/v1/events/2/",
                 "participant": "/api/v1/participants/222/",
                 "question_id": 99,
-                "question_text": "SMS Prompt User Story",
+                "question_text": "Thanks for providing feedback on your training. If " +
+                                 "you have a story about how it's changed your life " +
+                                 "in some way please reply to this SMS to tell us!",
                 "answer_text": "I made everybody in my community rich!",
                 "answer_value": "sms_user_entry"
             }
@@ -429,7 +431,9 @@ return [
                 "event": "/api/v1/events/2/",
                 "participant": "/api/v1/participants/222/",
                 "question_id": 99,
-                "question_text": "SMS Prompt User Story",
+                "question_text": "Thanks for providing feedback on your training. If " +
+                                 "you have a story about how it's changed your life " +
+                                 "in some way please reply to this SMS to tell us!",
                 "answer_text": "I made everybody in my community rich!",
                 "answer_value": "sms_user_entry"
             }

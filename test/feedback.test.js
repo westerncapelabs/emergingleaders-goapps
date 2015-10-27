@@ -29,6 +29,9 @@ describe("emergingleaders app", function() {
                         "sms": {"delivery_class": "sms"}
                     },
                     testing_today: '2015-03-03T15:08:08.000',
+                    sms_story_msg: "Thanks for providing feedback on your training. If " +
+                                   "you have a story about how it's changed your life " +
+                                   "in some way please reply to this SMS to tell us!",
                 })
                 .setup(function(api) {
                     fixtures().forEach(function(d) {
@@ -315,8 +318,9 @@ describe("emergingleaders app", function() {
                             var sms = smses[0];
                             assert.equal(smses.length,1);
                             assert.equal(sms.content,
-                                "Testify! by sending an sms reply with your success story " +
-                                "to this number."
+                                "Thanks for providing feedback on your training. If " +
+                                "you have a story about how it's changed your life " +
+                                "in some way please reply to this SMS to tell us!"
                             );
                             assert.equal(sms.to_addr,'+082222');
                         })

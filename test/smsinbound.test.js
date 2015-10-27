@@ -27,6 +27,9 @@ describe("emergingleaders app", function() {
                         api_key: "test_api_key",
                         base_url: "http://127.0.0.1:8000/api/v1/"
                     },
+                    sms_story_msg: "Thanks for providing feedback on your training. If " +
+                                   "you have a story about how it's changed your life " +
+                                   "in some way please reply to this SMS to tell us!",
                 })
                 .setup(function(api) {
                     api.resources.add(new DummyOptoutResource());

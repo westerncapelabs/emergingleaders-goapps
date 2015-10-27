@@ -557,8 +557,7 @@ go.app = function() {
                             to: self.contact,
                             endpoint: 'sms',
                             lang: self.contact.extra.lang,
-                            content: $("Testify! by sending an sms reply with your success story " +
-                                       "to this number.")
+                            content: $(self.im.config.sms_story_msg)
                         })
 
                     ])
