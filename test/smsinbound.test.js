@@ -72,7 +72,7 @@ describe("emergingleaders app", function() {
                     api.contacts.add({
                         msisdn: '+064999',
                         extra: {
-                            optout_last_attempt: '2015-03-03 03:08:08.000'
+                            optout_last_attempt: '2015-01-01 01:01:01.111'
                         },
                         key: "contact_key",
                         user_account: "contact_user_account"
@@ -174,7 +174,7 @@ describe("emergingleaders app", function() {
                         var contact = _.find(api.contacts.store, {
                                 msisdn: '+064999'
                             });
-                        assert.equal(contact.extra.optout_last_attempt, '2015-03-03 03:08:08.000');
+                        assert.equal(contact.extra.optout_last_attempt, '2015-01-01 01:01:01.111');
                         assert.equal(contact.extra.optin_last_attempt, '2015-03-03 03:08:08.000');
                     })
                     // check metrics
